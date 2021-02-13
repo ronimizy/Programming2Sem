@@ -91,19 +91,40 @@ public:
     }
 };
 
-class ConvexPolygon : public ClosedPolygonalLine {
+class Figure {
+public:
+    std::vector<Point> points;
+
+    Figure(std::vector<Point> points) :points(points) {}
+
+    double perimeter() {
+        double sum = 0;
+
+        for (int i = 0; i < points.size(); i++) {
+            sum += points[i].distanceFrom(points[(i - 1 + points.size()) % points.size()]);
+        }
+
+        return sum;
+    }
+
+    virtual double area() {
+        return 0;
+    }
+};
+
+class ConvexPolygon : public Figure {
 public:
     ConvexPolygon(const std::vector<Point> &points)
-            : ClosedPolygonalLine(points) {
+            : Figure(points) {
         if (!isConvex()) {
             this->points.resize(0);
         }
     }
 
     ConvexPolygon(const ConvexPolygon &origin)
-            : ClosedPolygonalLine(origin.points) {}
+            : Figure(origin.points) {}
 
-    virtual double area() {
+    double area() override {
         double sum = 0;
 
         for (int i = 0; i < points.size(); i++) {
@@ -182,7 +203,7 @@ private:
         std::vector<Point> directionals;
         std::vector<std::pair<int, int>> parallels;
 
-        directionals.resize(0);
+//        directionals.resize(0);
 
         for (int i = 1; i < 4; i++) {
             directionals.push_back(points[i] - points[i - 1]);
@@ -211,7 +232,7 @@ private:
 class AppropriatePolygon : public ConvexPolygon {
 public:
     AppropriatePolygon(const std::vector<Point> &points) : ConvexPolygon(points) {
-        if (!isAppropriate()) {
+        if (points.size() <= 2 || !isAppropriate()) {
             this->points.resize(0);
         }
     }
@@ -279,7 +300,7 @@ int main() {
     std::cout << cAp.area() << ' ' << cAp.perimeter() << '\n'; //2 6.82...
     std::cout << nAp.area() << ' ' << nAp.perimeter() << '\n'; // 0 0
 
-    PolygonalLine* arr[] = {&line, &cp, &cT, &cTr, &cAp};
+    Figure* arr[] = { &cp, &cT, &cTr, &cAp};
     std::cout << '\n';
     for (auto i : arr) {
         std::cout << i->perimeter() << '\n';

@@ -1,17 +1,18 @@
 #include <iostream>
 #include <utility>
 #include <vector>
+#include <cmath>
 
 template <typename T>
 class Poly {
     std::vector<T> coefficients;
 
 public:
-    int size() {
+    int size() const {
         return coefficients.size();
     }
 
-    T coefficient(int number) {
+    T coefficient(unsigned int number) const {
         if (number < size()) {
             return coefficients[number];
         } else {
@@ -23,16 +24,18 @@ public:
         if (number < size()) {
             coefficients[number] += value;
         } else {
-            coefficients.resize(number + 1, 0);
-            coefficients[number] = value;
+            coefficients.resize(number + 1);
+            coefficients[number] += value;
         }
     }
 
-    T substitute(T x) {
+    T substitute(T x) const {
         T sum = 0;
+        T degree = x/x;
 
         for (auto c : coefficients) {
-            sum += c * x;
+            sum += c * degree;
+            degree *= x;
         }
 
         return sum;
@@ -44,17 +47,12 @@ public:
 
     Poly() : coefficients(std::vector<T> ()) {};
 
-    template<typename S>
-    Poly<T> (const Poly<S> & p) : coefficients(std::vector<T> ()) {
-
-    }
-
     ~Poly() {
         coefficients.resize(0);
         std::cout << "Destructor's work have been done" << std::endl;
     }
 
-    bool operator==(Poly &rhs) {
+    bool operator==(const Poly &rhs) const {
         for (int i = 0; i < coefficients.size(); i++) {
             if (i < rhs.size()) {
                 if (coefficients[i] != rhs.coefficients[i]) {
@@ -69,8 +67,11 @@ public:
 
         return true;
     }
+    bool operator!=(const Poly &rhs) const {
+        return  !(*this == rhs);
+    }
 
-    Poly operator+(Poly &rhs) {
+    Poly operator+(Poly &rhs) const {
         Poly buffer;
 
         if (coefficients.size() >= rhs.size()) {
@@ -90,7 +91,7 @@ public:
         return buffer;
     }
 
-    Poly operator-() {
+    Poly operator-() const {
         Poly buffer(coefficients);
 
         for (int i = 0; i < size(); i++) {
@@ -100,21 +101,25 @@ public:
         return buffer;
     }
 
-    Poly operator-(Poly &rhs) {
+    Poly operator-(Poly &rhs) const {
         Poly buffer(-rhs);
 
         return *this + buffer;
     }
 
-    void operator +=(Poly &rhs) {
+    Poly& operator +=(Poly &rhs) {
         *this = *this + rhs;
+
+        return *this;
     }
 
-    void operator-=(Poly &rhs) {
+    Poly& operator-=(Poly &rhs) {
         *this = *this - rhs;
+
+        return *this;
     }
 
-    Poly operator*(T &rhs) {
+    Poly operator*(T &rhs) const {
         Poly buffer(coefficients);
 
         for (int i = 0; i < size(); i++) {
@@ -123,7 +128,7 @@ public:
 
         return buffer;
     }
-    Poly operator/(T &rhs) {
+    Poly operator/(T &rhs) const {
         Poly buffer(coefficients);
 
         for (int i = 0; i < size(); i++) {
@@ -133,61 +138,65 @@ public:
         return buffer;
     }
 
-    void operator*=(T &rhs) {
+    Poly& operator*=(T &rhs) {
         for (int i = 0; i < size(); i++) {
             coefficients[i] *= rhs;
         }
+
+        return *this;
     }
-    void operator/=(T &rhs) {
+    Poly& operator/=(T &rhs) {
         for (int i = 0; i < size(); i++) {
             coefficients[i] /= rhs;
         }
+
+        return *this;
     }
 
-    T operator[](int i) {
-        return coefficients[i];
+    T operator[](int i) const {
+        return coefficient(i);
+    }
+
+    friend std::istream& operator>>(std::istream &in, Poly<T> &p) {
+        T buffer;
+
+        if (in >> buffer) {
+            p.add(p.size(), buffer);
+        } else {
+            std::cout << "Given value has inappropriate type" << '\n';
+        }
+
+        return in;
+    }
+
+    friend std::ostream& operator<<(std::ostream &out, const Poly<T> &p) {
+        for (int i = 0; i < p.size(); i++) {
+            if (p[i] < 0) {
+                if (i != 0) {
+                    out << "- ";
+                } else {
+                    out << "-";
+                }
+            } else {
+                if (i != 0) {
+                    out << "+ ";
+                }
+            }
+
+            out << abs(p[i]);
+            if (i > 0) {
+                out << 'x';
+                if (i > 1) {
+                    out << '^' << i;
+                }
+            }
+
+            out << ' ';
+        }
+
+        return out;
     }
 };
-
-
-template <typename T>
-std::istream& operator>>(std::istream &in, Poly<T> &p) {
-    T buffer;
-
-    if (in >> buffer) {
-        p.add(p.size(), buffer);
-    } else {
-        std::cout << "Given value has inappropriate type" << '\n';
-    }
-}
-template <typename T>
-std::ostream& operator<<(std::ostream &out, Poly<T> &p) {
-    for (int i = 0; i < p.size(); i++) {
-        if (p[i] < 0) {
-            if (i != 0) {
-                out << "- ";
-            } else {
-                out << "-";
-            }
-        } else {
-            if (i != 0) {
-                out << "+ ";
-            }
-        }
-
-        out << abs(p[i]);
-        if (i > 0) {
-            out << 'x';
-            if (i > 1) {
-                out << '^' << i;
-            }
-        }
-
-        out << ' ';
-    }
-
-    return out;
-}
 
 
 int main() {
