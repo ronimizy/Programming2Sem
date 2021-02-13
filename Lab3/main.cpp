@@ -7,16 +7,17 @@
 
 #include <iostream>
 #include <map>
+#include <utility>
 #include <vector>
-#include "pugixml.hpp"
+#include "XML/pugixml.hpp"
 
 struct Node {
     double x, y;
     std::vector<std::string> routes;
     
-    Node(std::string crd, std::string str) {
-        getRoutesFromString(str);
-        getCoordinatesFromString(crd);
+    Node(std::string crd, std::string str) :x(0), y(0) {
+        getCoordinatesFromString(std::move(crd));
+        getRoutesFromString(std::move(str));
     }
     
     friend std::ostream& operator<<(std::ostream &lhs, Node &rhs) {
@@ -31,7 +32,7 @@ private:
         std::vector<double> one;
         
         int i = 0;
-        std::string buffer = "";
+        std::string buffer;
         
         while (char c = str[i++]) {
             if (c != ',') {
@@ -41,7 +42,7 @@ private:
                 buffer = "";
             }
         }
-        if (buffer != "") {
+        if (!buffer.empty()) {
             one.push_back(std::stod(buffer));
         }
         
@@ -50,7 +51,7 @@ private:
     }
     void getRoutesFromString(std::string str) {
         int i = 0;
-        std::string buffer = "";
+        std::string buffer;
         
         while (char c = str[i++]) {
             if (c != '.' && c != ',') {
@@ -60,16 +61,16 @@ private:
                 buffer = "";
             }
         }
-        if (buffer != "") {
+        if (!buffer.empty()) {
             routes.push_back(buffer);
         }
     }
 };
 
-int main(int argc, const char * argv[]) {
+int main() {
     
     pugi::xml_document document;
-    pugi::xml_parse_result result = document.load_file("/Users/george/Documents/ITMO/2_sem/Programming/Lab3/Lab3/data.xml");
+    pugi::xml_parse_result result = document.load_file("data.xml");
     
     
     if (result.status != 0) {
@@ -100,7 +101,7 @@ int main(int argc, const char * argv[]) {
                 i++;
             }
         }
-        if (buffer != "") {
+        if (!buffer.empty()) {
             s.push_back(buffer);
         }
         
@@ -112,8 +113,8 @@ int main(int argc, const char * argv[]) {
         }
     }
     
-    for (std::map<std::string, std::vector<Node>>::iterator it = streets.begin(); it != streets.end(); it++) {
-        for (auto i : it->second) {
+    for (auto & street : streets) {
+        for (auto i : street.second) {
             std::cout << i << '\n';
         }
     }
