@@ -30,12 +30,16 @@ public:
     }
 
     T substitute(T x) const {
-        T sum = 0;
-        T degree = x/x;
+        T sum;
+        T degree = x;
 
-        for (auto c : coefficients) {
-            sum += c * degree;
-            degree *= x;
+        for (int i = 0; i < coefficients.size(); i++) {
+            if (i == 0) {
+                sum += coefficients[0];
+            } else {
+                sum += coefficients[i] * degree;
+                degree *= x;
+            }
         }
 
         return sum;
@@ -66,6 +70,13 @@ public:
                 }
             }
         }
+        if (coefficients.size() < rhs.size()) {
+            for (int i = coefficients.size(); i < rhs.size(); i++) {
+                if (rhs[i] != 0) {
+                    return false;
+                }
+            }
+        }
 
         return true;
     }
@@ -74,27 +85,17 @@ public:
     }
 
     Poly operator+(Poly &rhs) const {
-        Poly buffer;
+        Poly buffer = Poly(*this);
 
-        if (coefficients.size() >= rhs.size()) {
-            buffer = Poly(coefficients);
-
-            for (int i = 0; i < rhs.size(); i++) {
-                buffer.add(i, rhs.coefficient(i));
-            }
-        } else {
-            buffer = Poly(rhs.coefficients);
-
-            for (int i = 0; i < coefficients.size(); i++) {
-                buffer.add(i, coefficients[i]);
-            }
+        for (size_t i = 0; i < rhs.size(); i++) {
+            buffer.add(i, rhs[i]);
         }
 
         return buffer;
     }
 
     Poly operator-() const {
-        Poly buffer(coefficients);
+        Poly buffer(*this);
 
         for (int i = 0; i < size(); i++) {
             buffer.coefficients[i] = -coefficients[i];
@@ -110,13 +111,17 @@ public:
     }
 
     Poly& operator +=(Poly &rhs) {
-        *this = *this + rhs;
+        for (size_t i = 0; i < rhs.size(); i++) {
+            this->add(i, rhs[i]);
+        }
 
         return *this;
     }
 
     Poly& operator-=(Poly &rhs) {
-        *this = *this - rhs;
+        for (size_t i = 0; i < rhs.size(); i++) {
+            this->add(i, -rhs[i]);
+        }
 
         return *this;
     }
