@@ -96,6 +96,9 @@ public:
     std::vector<Point> points;
 
     Figure(std::vector<Point> points) :points(points) {}
+    virtual ~Figure() {
+        std::cout << "Figure object had been destructed\n";
+    }
 
     double perimeter() {
         double sum = 0;
@@ -107,9 +110,7 @@ public:
         return sum;
     }
 
-    virtual double area() {
-        return 0;
-    }
+    virtual double area() = 0;
 };
 
 class ConvexPolygon : public Figure {
@@ -122,7 +123,10 @@ public:
     }
 
     ConvexPolygon(const ConvexPolygon &origin)
-            : Figure(origin.points) {}
+            : Figure(origin.points) {};
+    ~ConvexPolygon() override {
+        std::cout << "ConvexPolygon object had been destructed\n";
+    }
 
     double area() override {
         double sum = 0;
@@ -184,19 +188,27 @@ public:
     }
 
     Triangle(const Triangle &origin)
-            : ConvexPolygon(origin.points) {}
+            : ConvexPolygon(origin.points) {};
+
+    ~Triangle() override {
+        std::cout << "Triangle object had been destructed\n";
+    }
 };
 
 class Trapeze : public ConvexPolygon {
 
 public:
     Trapeze(const std::vector<Point> &points) : ConvexPolygon(points) {
-        if (points.size() != 4 || !isTrapeze()) {
+        if (this->points.size() != 4 || !isTrapeze()) {
             this->points.resize(0);
         }
     }
 
     Trapeze(const Trapeze &origin) : ConvexPolygon(origin.points) {}
+
+    ~Trapeze() override {
+        std::cout << "Trapeze object had been destructed\n";
+    }
 
 private:
     bool isTrapeze() {
@@ -232,12 +244,16 @@ private:
 class AppropriatePolygon : public ConvexPolygon {
 public:
     AppropriatePolygon(const std::vector<Point> &points) : ConvexPolygon(points) {
-        if (points.size() <= 2 || !isAppropriate()) {
+        if (this->points.size() <= 2 || !isAppropriate()) {
             this->points.resize(0);
         }
     }
 
     AppropriatePolygon(const AppropriatePolygon &origin) : ConvexPolygon(origin.points) {}
+
+    ~AppropriatePolygon() override {
+        std::cout << "AppropriatePolygon object had been destructed\n";
+    }
 
 private:
     bool isAppropriate() {
