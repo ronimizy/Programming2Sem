@@ -47,6 +47,8 @@ public:
 
     Poly() : coefficients(std::vector<T> ()) {};
 
+    Poly(size_t size) :coefficients(std::vector<T>(size)) {}
+
     ~Poly() {
         coefficients.resize(0);
         std::cout << "Destructor's work have been done" << std::endl;
@@ -158,12 +160,8 @@ public:
     }
 
     friend std::istream& operator>>(std::istream &in, Poly<T> &p) {
-        T buffer;
-
-        if (in >> buffer) {
-            p.add(p.size(), buffer);
-        } else {
-            std::cout << "Given value has inappropriate type" << '\n';
+        for (auto &c : p.coefficients) {
+            in >> c;
         }
 
         return in;
