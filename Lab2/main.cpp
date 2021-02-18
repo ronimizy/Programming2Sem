@@ -87,9 +87,7 @@ public:
     Poly operator+(Poly &rhs) const {
         Poly buffer = Poly(*this);
 
-        for (size_t i = 0; i < rhs.size(); i++) {
-            buffer.add(i, rhs[i]);
-        }
+        buffer += rhs;
 
         return buffer;
     }

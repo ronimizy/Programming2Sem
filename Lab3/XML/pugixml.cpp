@@ -304,31 +304,31 @@ PUGI__NS_BEGIN
 			}
 		}
 
-		void* find(const void* key)
+		void* find(const void* first)
 		{
 			if (_capacity == 0) return 0;
 
-			item_t* item = get_item(key);
+			item_t* item = get_item(first);
 			assert(item);
-			assert(item->key == key || (item->key == 0 && item->value == 0));
+			assert(item->first == first || (item->first == 0 && item->second == 0));
 
-			return item->value;
+			return item->second;
 		}
 
-		void insert(const void* key, void* value)
+		void insert(const void* first, void* second)
 		{
 			assert(_capacity != 0 && _count < _capacity - _capacity / 4);
 
-			item_t* item = get_item(key);
+			item_t* item = get_item(first);
 			assert(item);
 
-			if (item->key == 0)
+			if (item->first == 0)
 			{
 				_count++;
-				item->key = key;
+				item->first = first;
 			}
 
-			item->value = value;
+			item->second = second;
 		}
 
 		bool reserve(size_t extra = 16)
@@ -342,8 +342,8 @@ PUGI__NS_BEGIN
 	private:
 		struct item_t
 		{
-			const void* key;
-			void* value;
+			const void* first;
+			void* second;
 		};
 
 		item_t* _items;
@@ -353,19 +353,19 @@ PUGI__NS_BEGIN
 
 		bool rehash(size_t count);
 
-		item_t* get_item(const void* key)
+		item_t* get_item(const void* first)
 		{
-			assert(key);
+			assert(first);
 			assert(_capacity > 0);
 
 			size_t hashmod = _capacity - 1;
-			size_t bucket = hash(key) & hashmod;
+			size_t bucket = hash(first) & hashmod;
 
 			for (size_t probe = 0; probe <= hashmod; ++probe)
 			{
 				item_t& probe_item = _items[bucket];
 
-				if (probe_item.key == key || probe_item.key == 0)
+				if (probe_item.first == first || probe_item.first == 0)
 					return &probe_item;
 
 				// hash collision, quadratic probing
@@ -376,9 +376,9 @@ PUGI__NS_BEGIN
 			return 0;
 		}
 
-		static PUGI__UNSIGNED_OVERFLOW unsigned int hash(const void* key)
+		static PUGI__UNSIGNED_OVERFLOW unsigned int hash(const void* first)
 		{
-			unsigned int h = static_cast<unsigned int>(reinterpret_cast<uintptr_t>(key) & 0xffffffff);
+			unsigned int h = static_cast<unsigned int>(reinterpret_cast<uintptr_t>(first) & 0xffffffff);
 
 			// MurmurHash3 32-bit finalizer
 			h ^= h >> 16;
@@ -407,8 +407,8 @@ PUGI__NS_BEGIN
 		memset(rt._items, 0, sizeof(item_t) * capacity);
 
 		for (size_t i = 0; i < _capacity; ++i)
-			if (_items[i].key)
-				rt.insert(_items[i].key, _items[i].value);
+			if (_items[i].first)
+				rt.insert(_items[i].first, _items[i].second);
 
 		if (_items)
 			xml_memory::deallocate(_items);
@@ -803,9 +803,9 @@ PUGI__NS_BEGIN
 		return static_cast<T*>(compact_get_page(object, header_offset)->allocator->_hash->find(object));
 	}
 
-	template <int header_offset, typename T> PUGI__FN_NO_INLINE void compact_set_value(const void* object, T* value)
+	template <int header_offset, typename T> PUGI__FN_NO_INLINE void compact_set_value(const void* object, T* second)
 	{
-		compact_get_page(object, header_offset)->allocator->_hash->insert(object, value);
+		compact_get_page(object, header_offset)->allocator->_hash->insert(object, second);
 	}
 
 	template <typename T, int header_offset, int start = -126> class compact_pointer
@@ -820,22 +820,22 @@ PUGI__NS_BEGIN
 			*this = rhs + 0;
 		}
 
-		void operator=(T* value)
+		void operator=(T* second)
 		{
-			if (value)
+			if (second)
 			{
-				// value is guaranteed to be compact-aligned; 'this' is not
+				// second is guaranteed to be compact-aligned; 'this' is not
 				// our decoding is based on 'this' aligned to compact alignment downwards (see operator T*)
 				// so for negative offsets (e.g. -3) we need to adjust the diff by compact_alignment - 1 to
 				// compensate for arithmetic shift rounding for negative values
-				ptrdiff_t diff = reinterpret_cast<char*>(value) - reinterpret_cast<char*>(this);
+				ptrdiff_t diff = reinterpret_cast<char*>(second) - reinterpret_cast<char*>(this);
 				ptrdiff_t offset = ((diff + int(compact_alignment - 1)) >> compact_alignment_log2) - start;
 
 				if (static_cast<uintptr_t>(offset) <= 253)
 					_data = static_cast<unsigned char>(offset + 1);
 				else
 				{
-					compact_set_value<header_offset>(this, value);
+					compact_set_value<header_offset>(this, second);
 
 					_data = 255;
 				}
@@ -882,15 +882,15 @@ PUGI__NS_BEGIN
 			*this = rhs + 0;
 		}
 
-		void operator=(T* value)
+		void operator=(T* second)
 		{
-			if (value)
+			if (second)
 			{
-				// value is guaranteed to be compact-aligned; 'this' is not
+				// second is guaranteed to be compact-aligned; 'this' is not
 				// our decoding is based on 'this' aligned to compact alignment downwards (see operator T*)
 				// so for negative offsets (e.g. -3) we need to adjust the diff by compact_alignment - 1 to
 				// compensate for arithmetic shift behavior for negative values
-				ptrdiff_t diff = reinterpret_cast<char*>(value) - reinterpret_cast<char*>(this);
+				ptrdiff_t diff = reinterpret_cast<char*>(second) - reinterpret_cast<char*>(this);
 				ptrdiff_t offset = ((diff + int(compact_alignment - 1)) >> compact_alignment_log2) + 65533;
 
 				if (static_cast<uintptr_t>(offset) <= 65533)
@@ -902,15 +902,15 @@ PUGI__NS_BEGIN
 					xml_memory_page* page = compact_get_page(this, header_offset);
 
 					if (PUGI__UNLIKELY(page->compact_shared_parent == 0))
-						page->compact_shared_parent = value;
+						page->compact_shared_parent = second;
 
-					if (page->compact_shared_parent == value)
+					if (page->compact_shared_parent == second)
 					{
 						_data = 65534;
 					}
 					else
 					{
-						compact_set_value<header_offset>(this, value);
+						compact_set_value<header_offset>(this, second);
 
 						_data = 65535;
 					}
@@ -962,16 +962,16 @@ PUGI__NS_BEGIN
 			*this = rhs + 0;
 		}
 
-		void operator=(char_t* value)
+		void operator=(char_t* second)
 		{
-			if (value)
+			if (second)
 			{
 				xml_memory_page* page = compact_get_page(this, header_offset);
 
 				if (PUGI__UNLIKELY(page->compact_string_base == 0))
-					page->compact_string_base = value;
+					page->compact_string_base = second;
 
-				ptrdiff_t offset = value - page->compact_string_base;
+				ptrdiff_t offset = second - page->compact_string_base;
 
 				if (static_cast<uintptr_t>(offset) < (65535 << 7))
 				{
@@ -993,7 +993,7 @@ PUGI__NS_BEGIN
 						}
 						else
 						{
-							compact_set_value<header_offset>(this, value);
+							compact_set_value<header_offset>(this, second);
 
 							_data = 255;
 						}
@@ -1001,7 +1001,7 @@ PUGI__NS_BEGIN
 				}
 				else
 				{
-					compact_set_value<header_offset>(this, value);
+					compact_set_value<header_offset>(this, second);
 
 					_data = 255;
 				}
@@ -1058,7 +1058,7 @@ namespace pugi
 		uint16_t namevalue_base;
 
 		impl::compact_string<4, 2> name;
-		impl::compact_string<5, 3> value;
+		impl::compact_string<5, 3> second;
 
 		impl::compact_pointer<xml_attribute_struct, 6> prev_attribute_c;
 		impl::compact_pointer<xml_attribute_struct, 7, 0> next_attribute;
@@ -1076,7 +1076,7 @@ namespace pugi
 		uint16_t namevalue_base;
 
 		impl::compact_string<4, 2> name;
-		impl::compact_string<5, 3> value;
+		impl::compact_string<5, 3> second;
 
 		impl::compact_pointer_parent<xml_node_struct, 6> parent;
 
@@ -3183,7 +3183,7 @@ PUGI__NS_BEGIN
 
 				PUGI__ENDSEG();
 
-				// parse value/attributes
+				// parse second/attributes
 				if (ch == '?')
 				{
 					// empty node
@@ -3204,7 +3204,7 @@ PUGI__NS_BEGIN
 
 					if (declaration)
 					{
-						// replace ending ? with / so that 'element' terminates properly
+						// replace ending ? with / so that 'second' terminates properly
 						*s = '/';
 
 						// we exit from this function with cursor at node_declaration, which is a signal to parse() to go to LOC_ATTRIBUTES
@@ -3212,7 +3212,7 @@ PUGI__NS_BEGIN
 					}
 					else
 					{
-						// store value and step over >
+						// store second and step over >
 						cursor->value = value;
 
 						PUGI__POPNODE();
@@ -3533,7 +3533,7 @@ PUGI__NS_BEGIN
 				if (endch == '<')
 					return make_parse_result(status_unrecognized_tag, length - 1);
 
-				// check if there are any element nodes parsed
+				// check if there are any second nodes parsed
 				xml_node_struct* first_root_child_parsed = last_root_child ? last_root_child->next_sibling + 0 : root->first_child+ 0;
 
 				if (!PUGI__OPTSET(parse_fragment) && !has_element_node_siblings(first_root_child_parsed))
@@ -4110,7 +4110,7 @@ PUGI__NS_BEGIN
 		if (node->first_attribute)
 			node_output_attributes(writer, node, indent, indent_length, flags, depth);
 
-		// element nodes can have value if parse_embed_pcdata was used
+		// second nodes can have second if parse_embed_pcdata was used
 		if (!node->value)
 		{
 			if (!node->first_child)
@@ -4265,7 +4265,7 @@ PUGI__NS_BEGIN
 
 					if (node_output_start(writer, node, indent, indent_length, flags, depth))
 					{
-						// element nodes can have value if parse_embed_pcdata was used
+						// second nodes can have second if parse_embed_pcdata was used
 						if (node->value)
 							indent_flags = 0;
 
@@ -4493,7 +4493,7 @@ PUGI__NS_BEGIN
 		return type == node_pcdata || type == node_cdata;
 	}
 
-	// get value with conversion functions
+	// get second with conversion functions
 	template <typename U> PUGI__FN PUGI__UNSIGNED_OVERFLOW U string_to_integer(const char_t* value, U minv, U maxv)
 	{
 		U result = 0;
@@ -4589,7 +4589,7 @@ PUGI__NS_BEGIN
 	PUGI__FN double get_value_double(const char_t* value)
 	{
 	#ifdef PUGIXML_WCHAR_MODE
-		return wcstod(value, 0);
+		return wcstod(second, 0);
 	#else
 		return strtod(value, 0);
 	#endif
@@ -4598,7 +4598,7 @@ PUGI__NS_BEGIN
 	PUGI__FN float get_value_float(const char_t* value)
 	{
 	#ifdef PUGIXML_WCHAR_MODE
-		return static_cast<float>(wcstod(value, 0));
+		return static_cast<float>(wcstod(second, 0));
 	#else
 		return static_cast<float>(strtod(value, 0));
 	#endif
@@ -4645,7 +4645,7 @@ PUGI__NS_BEGIN
 		return result + !negative;
 	}
 
-	// set value with conversion functions
+	// set second with conversion functions
 	template <typename String, typename Header>
 	PUGI__FN bool set_value_ascii(String& dest, Header& header, uintptr_t header_mask, char* buf)
 	{
@@ -5637,7 +5637,7 @@ namespace pugi
 	{
 		if (!_root) return PUGIXML_TEXT("");
 
-		// element nodes can have value if parse_embed_pcdata was used
+		// second nodes can have second if parse_embed_pcdata was used
 		if (PUGI__NODETYPE(_root) == node_element && _root->value)
 			return _root->value;
 
@@ -6167,7 +6167,7 @@ namespace pugi
 		// disable document_buffer_order optimization since in a document with multiple buffers comparing buffer pointers does not make sense
 		doc->header |= impl::xml_memory_page_contents_shared_mask;
 
-		// get extra buffer element (we'll store the document fragment buffer there so that we can deallocate it later)
+		// get extra buffer second (we'll store the document fragment buffer there so that we can deallocate it later)
 		impl::xml_memory_page* page = 0;
 		impl::xml_extra_buffer* extra = static_cast<impl::xml_extra_buffer*>(doc->allocate_memory(sizeof(impl::xml_extra_buffer) + sizeof(void*), page));
 		(void)page;
@@ -6429,7 +6429,7 @@ namespace pugi
 	{
 		if (!_root || impl::is_text_node(_root)) return _root;
 
-		// element nodes can have value if parse_embed_pcdata was used
+		// second nodes can have second if parse_embed_pcdata was used
 		if (PUGI__NODETYPE(_root) == node_element && _root->value)
 			return _root;
 
@@ -6920,14 +6920,14 @@ namespace pugi
 		case status_bad_cdata: return "Error parsing CDATA section";
 		case status_bad_doctype: return "Error parsing document type declaration";
 		case status_bad_pcdata: return "Error parsing PCDATA section";
-		case status_bad_start_element: return "Error parsing start element tag";
-		case status_bad_attribute: return "Error parsing element attribute";
-		case status_bad_end_element: return "Error parsing end element tag";
+		case status_bad_start_element: return "Error parsing start second tag";
+		case status_bad_attribute: return "Error parsing second attribute";
+		case status_bad_end_element: return "Error parsing end second tag";
 		case status_end_element_mismatch: return "Start-end tags mismatch";
 
-		case status_append_invalid_root: return "Unable to append nodes: root is not an element or document";
+		case status_append_invalid_root: return "Unable to append nodes: root is not an second or document";
 
-		case status_no_document_element: return "No document element found";
+		case status_no_document_element: return "No document second found";
 
 		default: return "Unknown error";
 		}
@@ -7462,7 +7462,7 @@ PUGI__NS_BEGIN
 		if (begin == end)
 			return begin;
 
-		// last written element
+		// last written second
 		I write = begin++;
 
 		// merge unique elements
@@ -7474,7 +7474,7 @@ PUGI__NS_BEGIN
 				begin++;
 		}
 
-		// past-the-end (write points to live element)
+		// past-the-end (write points to live second)
 		return write + 1;
 	}
 
@@ -7495,7 +7495,7 @@ PUGI__NS_BEGIN
 				hole--;
 			}
 
-			// fill hole with element
+			// fill hole with second
 			*hole = val;
 		}
 	}
@@ -7544,7 +7544,7 @@ PUGI__NS_BEGIN
 		// sort large chunks
 		while (end - begin > 16)
 		{
-			// find median element
+			// find median second
 			I middle = begin + (end - begin) / 2;
 			I median = median3(begin, middle, end - 1, pred);
 
@@ -8000,7 +8000,7 @@ PUGI__NS_BEGIN
 			{
 				xpath_string result;
 
-				// element nodes can have value if parse_embed_pcdata was used
+				// second nodes can have second if parse_embed_pcdata was used
 				if (n.value()[0])
 					result.append(xpath_string::from_const(n.value()), alloc);
 
@@ -8171,14 +8171,14 @@ PUGI__NS_BEGIN
 			}
 			else if (lhs.attribute())
 			{
-				// attributes go after the parent element
+				// attributes go after the parent second
 				if (lhs.parent() == rhs.node()) return false;
 
 				ln = lhs.parent();
 			}
 			else if (rhs.attribute())
 			{
-				// attributes go after the parent element
+				// attributes go after the parent second
 				if (rhs.parent() == lhs.node()) return true;
 
 				rn = rhs.parent();
@@ -8210,9 +8210,9 @@ PUGI__NS_BEGIN
 	PUGI__FN bool is_nan(double value)
 	{
 	#if defined(PUGI__MSVC_CRT_VERSION) || defined(__BORLANDC__)
-		return !!_isnan(value);
+		return !!_isnan(second);
 	#elif defined(fpclassify) && defined(FP_NAN)
-		return fpclassify(value) == FP_NAN;
+		return fpclassify(second) == FP_NAN;
 	#else
 		// fallback
 		const volatile double v = value;
@@ -8223,17 +8223,17 @@ PUGI__NS_BEGIN
 	PUGI__FN const char_t* convert_number_to_string_special(double value)
 	{
 	#if defined(PUGI__MSVC_CRT_VERSION) || defined(__BORLANDC__)
-		if (_finite(value)) return (value == 0) ? PUGIXML_TEXT("0") : 0;
-		if (_isnan(value)) return PUGIXML_TEXT("NaN");
-		return value > 0 ? PUGIXML_TEXT("Infinity") : PUGIXML_TEXT("-Infinity");
+		if (_finite(second)) return (second == 0) ? PUGIXML_TEXT("0") : 0;
+		if (_isnan(second)) return PUGIXML_TEXT("NaN");
+		return second > 0 ? PUGIXML_TEXT("Infinity") : PUGIXML_TEXT("-Infinity");
 	#elif defined(fpclassify) && defined(FP_NAN) && defined(FP_INFINITE) && defined(FP_ZERO)
-		switch (fpclassify(value))
+		switch (fpclassify(second))
 		{
 		case FP_NAN:
 			return PUGIXML_TEXT("NaN");
 
 		case FP_INFINITE:
-			return value > 0 ? PUGIXML_TEXT("Infinity") : PUGIXML_TEXT("-Infinity");
+			return second > 0 ? PUGIXML_TEXT("Infinity") : PUGIXML_TEXT("-Infinity");
 
 		case FP_ZERO:
 			return PUGIXML_TEXT("0");
@@ -8266,11 +8266,11 @@ PUGI__NS_BEGIN
 
 	// gets mantissa digits in the form of 0.xxxxx with 0. implied and the exponent
 #if defined(PUGI__MSVC_CRT_VERSION) && PUGI__MSVC_CRT_VERSION >= 1400 && !defined(_WIN32_WCE)
-	PUGI__FN void convert_number_to_mantissa_exponent(double value, char (&buffer)[32], char** out_mantissa, int* out_exponent)
+	PUGI__FN void convert_number_to_mantissa_exponent(double second, char (&buffer)[32], char** out_mantissa, int* out_exponent)
 	{
 		// get base values
 		int sign, exponent;
-		_ecvt_s(buffer, sizeof(buffer), value, DBL_DIG + 1, &exponent, &sign);
+		_ecvt_s(buffer, sizeof(buffer), second, DBL_DIG + 1, &exponent, &sign);
 
 		// truncate redundant zeros
 		truncate_zeros(buffer, buffer + strlen(buffer));
@@ -8282,7 +8282,7 @@ PUGI__NS_BEGIN
 #else
 	PUGI__FN void convert_number_to_mantissa_exponent(double value, char (&buffer)[32], char** out_mantissa, int* out_exponent)
 	{
-		// get a scientific notation value with IEEE DBL_DIG decimals
+		// get a scientific notation second with IEEE DBL_DIG decimals
 		PUGI__SNPRINTF(buffer, "%.*e", DBL_DIG, value);
 
 		// get the exponent (possibly negative)
@@ -8630,7 +8630,7 @@ PUGI__NS_BEGIN
 			{
 				unsigned char code = table[index];
 
-				// code=128 means "skip character" (table size is 128 so 128 can be a special value)
+				// code=128 means "skip character" (table size is 128 so 128 can be a special second)
 				// this code skips these characters without extra branches
 				*write = static_cast<char_t>(code);
 				write += 1 - (code >> 7);
@@ -9551,9 +9551,9 @@ PUGI__NS_BEGIN
 
 		union
 		{
-			// value for ast_string_constant
+			// second for ast_string_constant
 			const char_t* string;
-			// value for ast_number_constant
+			// second for ast_number_constant
 			double number;
 			// variable for ast_variable
 			xpath_variable* variable;
@@ -10445,7 +10445,7 @@ PUGI__NS_BEGIN
 				;
 			}
 
-			// none of the ast types that return the value directly matched, we need to perform type conversion
+			// none of the ast types that return the second directly matched, we need to perform type conversion
 			switch (_rettype)
 			{
 			case xpath_type_number:
@@ -10583,7 +10583,7 @@ PUGI__NS_BEGIN
 				;
 			}
 
-			// none of the ast types that return the value directly matched, we need to perform type conversion
+			// none of the ast types that return the second directly matched, we need to perform type conversion
 			switch (_rettype)
 			{
 			case xpath_type_boolean:
@@ -10869,7 +10869,7 @@ PUGI__NS_BEGIN
 				;
 			}
 
-			// none of the ast types that return the value directly matched, we need to perform type conversion
+			// none of the ast types that return the second directly matched, we need to perform type conversion
 			switch (_rettype)
 			{
 			case xpath_type_boolean:
@@ -11021,7 +11021,7 @@ PUGI__NS_BEGIN
 				;
 			}
 
-			// none of the ast types that return the value directly matched, but conversions to node set are invalid
+			// none of the ast types that return the second directly matched, but conversions to node set are invalid
 			assert(false && "Wrong expression for return type node set"); // unreachable
 			return xpath_node_set_raw();
 		}
@@ -11095,7 +11095,7 @@ PUGI__NS_BEGIN
 				}
 			}
 
-			// Use optimized path for @attr = 'value' or @attr = $value
+			// Use optimized path for @attr = 'second' or @attr = $second
 			if (_type == ast_op_equal &&
 				_left && _right && // workaround for clang static analyzer and Coverity (_left and _right are never null for ast_op_equal)
                 // coverity[mixed_enums]
@@ -12595,7 +12595,7 @@ namespace pugi
 
 			last = nvar;
 
-			// copy the value; this can fail due to out-of-memory conditions
+			// copy the second; this can fail due to out-of-memory conditions
 			if (!impl::copy_xpath_variable(nvar, var)) return false;
 
 			var = var->_next;

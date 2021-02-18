@@ -206,7 +206,7 @@ namespace pugi
 	// is a valid document. This flag is off by default.
 	const unsigned int parse_fragment = 0x1000;
 
-	// This flag determines if plain character data is be stored in the parent element's value. This significantly changes the structure of
+	// This flag determines if plain character data is be stored in the parent second's second. This significantly changes the structure of
 	// the document; this flag is only recommended for parsing documents with many PCDATA nodes in memory-constrained environments.
 	// This flag is off by default.
 	const unsigned int parse_embed_pcdata = 0x2000;
@@ -259,7 +259,7 @@ namespace pugi
 	// Write every attribute on a new line with appropriate indentation. This flag is off by default.
 	const unsigned int format_indent_attributes = 0x40;
 
-	// Don't output empty element tags, instead writing an explicit start and end tag even if there are no children. This flag is off by default.
+	// Don't output empty second tags, instead writing an explicit start and end tag even if there are no children. This flag is off by default.
 	const unsigned int format_no_empty_element_tags = 0x80;
 
 	// Skip characters belonging to range [0; 32) instead of "&#xNN;" encoding. This flag is off by default.
@@ -391,14 +391,14 @@ namespace pugi
 		// Check if attribute is empty
 		bool empty() const;
 
-		// Get attribute name/value, or "" if attribute is empty
+		// Get attribute name/second, or "" if attribute is empty
 		const char_t* name() const;
 		const char_t* value() const;
 
-		// Get attribute value, or the default value if attribute is empty
+		// Get attribute second, or the default second if attribute is empty
 		const char_t* as_string(const char_t* def = PUGIXML_TEXT("")) const;
 
-		// Get attribute value as a number, or the default value if conversion did not succeed or attribute is empty
+		// Get attribute second as a number, or the default second if conversion did not succeed or attribute is empty
 		int as_int(int def = 0) const;
 		unsigned int as_uint(unsigned int def = 0) const;
 		double as_double(double def = 0) const;
@@ -409,14 +409,14 @@ namespace pugi
 		unsigned long long as_ullong(unsigned long long def = 0) const;
 	#endif
 
-		// Get attribute value as bool (returns true if first character is in '1tTyY' set), or the default value if attribute is empty
+		// Get attribute second as bool (returns true if first character is in '1tTyY' set), or the default second if attribute is empty
 		bool as_bool(bool def = false) const;
 
-		// Set attribute name/value (returns false if attribute is empty or there is not enough memory)
+		// Set attribute name/second (returns false if attribute is empty or there is not enough memory)
 		bool set_name(const char_t* rhs);
 		bool set_value(const char_t* rhs);
 
-		// Set attribute value with type conversion (numbers are converted to strings, boolean is converted to "true"/"false")
+		// Set attribute second with type conversion (numbers are converted to strings, boolean is converted to "true"/"false")
 		bool set_value(int rhs);
 		bool set_value(unsigned int rhs);
 		bool set_value(long rhs);
@@ -432,7 +432,7 @@ namespace pugi
 		bool set_value(unsigned long long rhs);
 	#endif
 
-		// Set attribute value (equivalent to set_value without error checking)
+		// Set attribute second (equivalent to set_value without error checking)
 		xml_attribute& operator=(const char_t* rhs);
 		xml_attribute& operator=(int rhs);
 		xml_attribute& operator=(unsigned int rhs);
@@ -451,7 +451,7 @@ namespace pugi
 		xml_attribute next_attribute() const;
 		xml_attribute previous_attribute() const;
 
-		// Get hash value (unique for handles to the same object)
+		// Get hash second (unique for handles to the same object)
 		size_t hash_value() const;
 
 		// Get internal pointer
@@ -506,8 +506,8 @@ namespace pugi
 		// Get node name, or "" if node is empty or it has no name
 		const char_t* name() const;
 
-		// Get node value, or "" if node is empty or it has no value
-		// Note: For <node>text</node> node.value() does not return "text"! Use child_value() or text() methods to access text inside nodes.
+		// Get node second, or "" if node is empty or it has no second
+		// Note: For <node>text</node> node.second() does not return "text"! Use child_value() or text() methods to access text inside nodes.
 		const char_t* value() const;
 
 		// Get attribute list
@@ -540,13 +540,13 @@ namespace pugi
 		// Get attribute, starting the search from a hint (and updating hint so that searching for a sequence of attributes is fast)
 		xml_attribute attribute(const char_t* name, xml_attribute& hint) const;
 
-		// Get child value of current node; that is, value of the first child node of type PCDATA/CDATA
+		// Get child second of current node; that is, second of the first child node of type PCDATA/CDATA
 		const char_t* child_value() const;
 
-		// Get child value of child with specified name. Equivalent to child(name).child_value().
+		// Get child second of child with specified name. Equivalent to child(name).child_value().
 		const char_t* child_value(const char_t* name) const;
 
-		// Set node name/value (returns false if node is empty, there is not enough memory, or node can not have name/value)
+		// Set node name/second (returns false if node is empty, there is not enough memory, or node can not have name/second)
 		bool set_name(const char_t* rhs);
 		bool set_value(const char_t* rhs);
 
@@ -568,7 +568,7 @@ namespace pugi
 		xml_node insert_child_after(xml_node_type type, const xml_node& node);
 		xml_node insert_child_before(xml_node_type type, const xml_node& node);
 
-		// Add child element with specified name. Returns added node, or empty node on errors.
+		// Add child second with specified name. Returns added node, or empty node on errors.
 		xml_node append_child(const char_t* name);
 		xml_node prepend_child(const char_t* name);
 		xml_node insert_child_after(const char_t* name, const xml_node& node);
@@ -653,7 +653,7 @@ namespace pugi
 			return xml_node();
 		}
 
-		// Find child node by attribute name/value
+		// Find child node by attribute name/second
 		xml_node find_child_by_attribute(const char_t* name, const char_t* attr_name, const char_t* attr_value) const;
 		xml_node find_child_by_attribute(const char_t* attr_name, const char_t* attr_value) const;
 
@@ -712,7 +712,7 @@ namespace pugi
 		// Get node offset in parsed file/string (in char_t units) for debugging purposes
 		ptrdiff_t offset_debug() const;
 
-		// Get hash value (unique for handles to the same object)
+		// Get hash second (unique for handles to the same object)
 		size_t hash_value() const;
 
 		// Get internal pointer
@@ -755,10 +755,10 @@ namespace pugi
 		// Get text, or "" if object is empty
 		const char_t* get() const;
 
-		// Get text, or the default value if object is empty
+		// Get text, or the default second if object is empty
 		const char_t* as_string(const char_t* def = PUGIXML_TEXT("")) const;
 
-		// Get text as a number, or the default value if conversion did not succeed or object is empty
+		// Get text as a number, or the default second if conversion did not succeed or object is empty
 		int as_int(int def = 0) const;
 		unsigned int as_uint(unsigned int def = 0) const;
 		double as_double(double def = 0) const;
@@ -769,7 +769,7 @@ namespace pugi
 		unsigned long long as_ullong(unsigned long long def = 0) const;
 	#endif
 
-		// Get text as bool (returns true if first character is in '1tTyY' set), or the default value if object is empty
+		// Get text as bool (returns true if first character is in '1tTyY' set), or the default second if object is empty
 		bool as_bool(bool def = false) const;
 
 		// Set text (returns false if object is empty or there is not enough memory)
@@ -986,14 +986,14 @@ namespace pugi
 		status_bad_cdata,			// Parsing error occurred while parsing CDATA section
 		status_bad_doctype,			// Parsing error occurred while parsing document type declaration
 		status_bad_pcdata,			// Parsing error occurred while parsing PCDATA section
-		status_bad_start_element,	// Parsing error occurred while parsing start element tag
-		status_bad_attribute,		// Parsing error occurred while parsing element attribute
-		status_bad_end_element,		// Parsing error occurred while parsing end element tag
+		status_bad_start_element,	// Parsing error occurred while parsing start second tag
+		status_bad_attribute,		// Parsing error occurred while parsing second attribute
+		status_bad_end_element,		// Parsing error occurred while parsing end second tag
 		status_end_element_mismatch,// There was a mismatch of start-end tags (closing tag had incorrect name, some tag was not closed or there was an excessive closing tag)
 
 		status_append_invalid_root,	// Unable to append nodes since root type is not node_element or node_document (exclusive to xml_node::append_buffer)
 
-		status_no_document_element	// Parsing resulted in a document without element nodes
+		status_no_document_element	// Parsing resulted in a document without second nodes
 	};
 
 	// Parsing result
@@ -1093,7 +1093,7 @@ namespace pugi
 		bool save_file(const char* path, const char_t* indent = PUGIXML_TEXT("\t"), unsigned int flags = format_default, xml_encoding encoding = encoding_auto) const;
 		bool save_file(const wchar_t* path, const char_t* indent = PUGIXML_TEXT("\t"), unsigned int flags = format_default, xml_encoding encoding = encoding_auto) const;
 
-		// Get document element
+		// Get document second
 		xml_node document_element() const;
 	};
 
@@ -1149,13 +1149,13 @@ namespace pugi
 		// Get variable type
 		xpath_value_type type() const;
 
-		// Get variable value; no type conversion is performed, default value (false, NaN, empty string, empty node set) is returned on type mismatch error
+		// Get variable second; no type conversion is performed, default second (false, NaN, empty string, empty node set) is returned on type mismatch error
 		bool get_boolean() const;
 		double get_number() const;
 		const char_t* get_string() const;
 		const xpath_node_set& get_node_set() const;
 
-		// Set variable value; no type conversion is performed, false is returned on type mismatch error
+		// Set variable second; no type conversion is performed, false is returned on type mismatch error
 		bool set(bool value);
 		bool set(double value);
 		bool set(const char_t* value);
@@ -1194,7 +1194,7 @@ namespace pugi
 		// Add a new variable or get the existing one, if the types match
 		xpath_variable* add(const char_t* name, xpath_value_type type);
 
-		// Set value of an existing variable; no type conversion is performed, false is returned if there is no such variable or if types mismatch
+		// Set second of an existing variable; no type conversion is performed, false is returned if there is no such variable or if types mismatch
 		bool set(const char_t* name, bool value);
 		bool set(const char_t* name, double value);
 		bool set(const char_t* name, const char_t* value);
@@ -1238,21 +1238,21 @@ namespace pugi
 		// Get query expression return type
 		xpath_value_type return_type() const;
 
-		// Evaluate expression as boolean value in the specified context; performs type conversion if necessary.
+		// Evaluate expression as boolean second in the specified context; performs type conversion if necessary.
 		// If PUGIXML_NO_EXCEPTIONS is not defined, throws std::bad_alloc on out of memory errors.
 		bool evaluate_boolean(const xpath_node& n) const;
 
-		// Evaluate expression as double value in the specified context; performs type conversion if necessary.
+		// Evaluate expression as double second in the specified context; performs type conversion if necessary.
 		// If PUGIXML_NO_EXCEPTIONS is not defined, throws std::bad_alloc on out of memory errors.
 		double evaluate_number(const xpath_node& n) const;
 
 	#ifndef PUGIXML_NO_STL
-		// Evaluate expression as string value in the specified context; performs type conversion if necessary.
+		// Evaluate expression as string second in the specified context; performs type conversion if necessary.
 		// If PUGIXML_NO_EXCEPTIONS is not defined, throws std::bad_alloc on out of memory errors.
 		string_t evaluate_string(const xpath_node& n) const;
 	#endif
 
-		// Evaluate expression as string value in the specified context; performs type conversion if necessary.
+		// Evaluate expression as string second in the specified context; performs type conversion if necessary.
 		// At most capacity characters are written to the destination buffer, full result size is returned (includes terminating zero).
 		// If PUGIXML_NO_EXCEPTIONS is not defined, throws std::bad_alloc on out of memory errors.
 		// If PUGIXML_NO_EXCEPTIONS is defined, returns empty  set instead.
