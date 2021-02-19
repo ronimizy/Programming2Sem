@@ -80,6 +80,7 @@ int main() {
     //Парсинг
     for (pugi::xml_node station = set.child("transport_station"); station; station = station.next_sibling()) {
         //Создание узла
+
         Node node(station.child("coordinates").first_child().value());
         std::string type = station.child("type_of_vehicle").first_child().value();
 
