@@ -3,9 +3,9 @@
 #include <vector>
 #include <cmath>
 
-template <typename T>
+template<typename T>
 class Poly {
-    std::vector<T> coefficients;
+    std::vector <T> coefficients;
 
 public:
     int size() const {
@@ -45,13 +45,13 @@ public:
         return sum;
     }
 
-    Poly(std::vector<T> c) : coefficients(std::move(c)) {};
+    Poly(std::vector <T> c) : coefficients(std::move(c)) {};
 
     Poly(const Poly &origin) : coefficients(origin.coefficients) {};
 
-    Poly() : coefficients(std::vector<T> ()) {};
+    Poly() : coefficients(std::vector<T>()) {};
 
-    Poly(size_t size) :coefficients(std::vector<T>(size)) {}
+    Poly(size_t size) : coefficients(std::vector<T>(size)) {}
 
     ~Poly() {
         coefficients.resize(0);
@@ -80,8 +80,9 @@ public:
 
         return true;
     }
+
     bool operator!=(const Poly &rhs) const {
-        return  !(*this == rhs);
+        return !(*this == rhs);
     }
 
     Poly operator+(Poly &rhs) const {
@@ -108,7 +109,7 @@ public:
         return *this + buffer;
     }
 
-    Poly& operator +=(Poly &rhs) {
+    Poly &operator+=(Poly &rhs) {
         for (size_t i = 0; i < rhs.size(); i++) {
             this->add(i, rhs[i]);
         }
@@ -116,12 +117,19 @@ public:
         return *this;
     }
 
-    Poly& operator-=(Poly &rhs) {
+    Poly &operator-=(Poly &rhs) {
         for (size_t i = 0; i < rhs.size(); i++) {
             this->add(i, -rhs[i]);
         }
 
         return *this;
+    }
+
+    Poly operator*(Poly &rhs) const {
+        Poly buffer(*this);
+        buffer *= rhs;
+
+        return buffer;
     }
 
     Poly operator*(T &rhs) const {
@@ -133,6 +141,7 @@ public:
 
         return buffer;
     }
+
     Poly operator/(T &rhs) const {
         Poly buffer(coefficients);
 
@@ -143,14 +152,28 @@ public:
         return buffer;
     }
 
-    Poly& operator*=(T &rhs) {
+    Poly &operator*=(Poly &rhs) {
+        std::vector<T> buffer(size() + rhs.size() - 1);
+
+        for (int i = size() - 1; i >= 0; i--) {
+            for (int j = rhs.size() - 1; j >= 0; j--) {
+                buffer[i + j] += coefficients[i] * coefficients[j];
+            }
+        }
+
+        coefficients = buffer;
+        return *this;
+    }
+
+    Poly &operator*=(T &rhs) {
         for (int i = 0; i < size(); i++) {
             coefficients[i] *= rhs;
         }
 
         return *this;
     }
-    Poly& operator/=(T &rhs) {
+
+    Poly &operator/=(T &rhs) {
         for (int i = 0; i < size(); i++) {
             coefficients[i] /= rhs;
         }
@@ -162,7 +185,7 @@ public:
         return coefficient(i);
     }
 
-    friend std::istream& operator>>(std::istream &in, Poly<T> &p) {
+    friend std::istream &operator>>(std::istream &in, Poly<T> &p) {
         for (auto &c : p.coefficients) {
             in >> c;
         }
@@ -170,7 +193,7 @@ public:
         return in;
     }
 
-    friend std::ostream& operator<<(std::ostream &out, const Poly<T> &p) {
+    friend std::ostream &operator<<(std::ostream &out, const Poly<T> &p) {
         for (int i = 0; i < p.size(); i++) {
             if (p[i] < 0) {
                 if (i != 0) {
@@ -201,12 +224,13 @@ public:
 
 
 int main() {
-    Poly<int> pInt(std::vector<int> {-1, 2, 3, -4});
-    Poly<int> pInt2(std::vector<int> {-1, 2, 3, -5});
-    Poly<double> pD(std::vector<double> {-1, 2, 3, -4});
+    Poly<int> pInt(std::vector < int > {-1, 2, 3, -4});
+    Poly<int> pInt2(std::vector < int > {-1, 2, 3, -5});
+    Poly<double> pD(std::vector < double > {-1, 2, 3, -4});
 
+    Poly<int> ol1(std::vector<int> {1, 2, 3});
+    Poly<int> ol2(std::vector<int> {1, 2});
 
-    std::cout << pInt << '\n';
-//    std::cout << "Hello, World!" << std::endl;
+    std::cout << ol1 * ol2 << '\n';
     return 0;
 }
