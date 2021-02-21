@@ -34,13 +34,13 @@ struct Node {
 
     
 private:
-    void getCoordinatesFromString(std::string str) {
+    void getCoordinatesFromString(const std::string &str) {
         std::vector<double> one;
         
         int i = 0;
         std::string buffer;
         
-        while (char c = str[i++]) {
+        for (auto &c : str) {
             if (c != ',') {
                 buffer += c;
             } else {
