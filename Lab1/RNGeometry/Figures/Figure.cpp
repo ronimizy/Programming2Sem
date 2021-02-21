@@ -4,7 +4,7 @@
 
 #include <utility>
 
-#include "../Figures.h"
+#include "../../RNGeometry.h"
 
 
 double RNGeometry::Figures::Figure::perimeter() const {
