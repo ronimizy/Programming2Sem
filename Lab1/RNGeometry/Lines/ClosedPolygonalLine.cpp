@@ -8,6 +8,10 @@
 RNGeometry::Lines::ClosedPolygonalLine::ClosedPolygonalLine(const std::vector <RNGeometry::Point> &points)
         : PolygonalLine(points) {};
 
+//Move constructor
+RNGeometry::Lines::ClosedPolygonalLine::ClosedPolygonalLine(RNGeometry::Lines::ClosedPolygonalLine &&origin)
+        : PolygonalLine(std::move(origin.points)) {};
+
 //Copy constructor
 RNGeometry::Lines::ClosedPolygonalLine::ClosedPolygonalLine(const ClosedPolygonalLine &origin)
         : PolygonalLine(origin.points) {};

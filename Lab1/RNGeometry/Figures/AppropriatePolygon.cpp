@@ -11,6 +11,9 @@ RNGeometry::Figures::AppropriatePolygon::AppropriatePolygon(const std::vector <P
     }
 }
 
+//Move constructor
+RNGeometry::Figures::AppropriatePolygon::AppropriatePolygon(AppropriatePolygon &&origin) noexcept : ConvexPolygon(origin) {};
+
 //Copy constructor
 RNGeometry::Figures::AppropriatePolygon::AppropriatePolygon(const AppropriatePolygon &origin)  : ConvexPolygon(origin.points) {}
 

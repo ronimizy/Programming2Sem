@@ -11,6 +11,9 @@ RNGeometry::Figures::Triangle::Triangle(const std::vector <Point> &points) : Con
     }
 }
 
+//Move constructor
+RNGeometry::Figures::Triangle::Triangle(Triangle &&origin) noexcept : ConvexPolygon(origin) {};
+
 //Copy constructor
 RNGeometry::Figures::Triangle::Triangle(const Triangle &origin)
         : ConvexPolygon(origin.points) {};

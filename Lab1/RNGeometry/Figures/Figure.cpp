@@ -19,6 +19,7 @@ double RNGeometry::Figures::Figure::perimeter() const {
 
 
 RNGeometry::Figures::Figure::Figure(std::vector <Point> points) : points(std::move(points)) {};
+RNGeometry::Figures::Figure::Figure(std::vector <Point> &&points) : points(std::move(points)) {};
 RNGeometry::Figures::Figure::~Figure() {
     std::cout << "Figure object had been destructed\n";
 }

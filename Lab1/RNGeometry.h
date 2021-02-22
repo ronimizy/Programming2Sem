@@ -45,6 +45,8 @@ namespace RNGeometry {
         public:
             PolygonalLine(std::vector <RNGeometry::Point> points);
 
+            PolygonalLine(PolygonalLine &&origin) noexcept;
+
             PolygonalLine(const PolygonalLine &origin);
 
             virtual double length();
@@ -69,6 +71,8 @@ namespace RNGeometry {
         class ClosedPolygonalLine : public PolygonalLine {
         public:
             ClosedPolygonalLine(const std::vector <RNGeometry::Point> &points);
+
+            ClosedPolygonalLine(ClosedPolygonalLine &&origin);
 
             ClosedPolygonalLine(const ClosedPolygonalLine &origin);
 
@@ -105,6 +109,8 @@ namespace RNGeometry {
         public:
             ConvexPolygon(const std::vector <Point> &points);
 
+            ConvexPolygon(ConvexPolygon &&origin) noexcept;
+
             ConvexPolygon(const ConvexPolygon &origin);
 
             ~ConvexPolygon() override;
@@ -115,6 +121,8 @@ namespace RNGeometry {
         class Triangle : public ConvexPolygon {
         public:
             Triangle(const std::vector <Point> &points);
+
+            Triangle(Triangle &&origin) noexcept;
 
             Triangle(const Triangle &origin);
 
@@ -127,6 +135,8 @@ namespace RNGeometry {
         public:
             Trapeze(const std::vector <Point> &points);
 
+            Trapeze(Trapeze &&origin) noexcept;
+
             Trapeze(const Trapeze &origin);
 
             ~Trapeze() override;
@@ -137,6 +147,8 @@ namespace RNGeometry {
 
         public:
             AppropriatePolygon(const std::vector <Point> &points);
+
+            AppropriatePolygon(AppropriatePolygon &&origin) noexcept;
 
             AppropriatePolygon(const AppropriatePolygon &origin);
 

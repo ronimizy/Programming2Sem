@@ -11,6 +11,9 @@ RNGeometry::Figures::Trapeze::Trapeze(const std::vector <RNGeometry::Point> &poi
     }
 }
 
+//Move constructor
+RNGeometry::Figures::Trapeze::Trapeze(Trapeze &&origin) noexcept : ConvexPolygon(origin) {};
+
 //Copy constructor
 RNGeometry::Figures::Trapeze::Trapeze(const Trapeze &origin) : ConvexPolygon(origin.points) {};
 

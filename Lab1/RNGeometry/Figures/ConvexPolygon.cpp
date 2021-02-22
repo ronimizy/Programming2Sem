@@ -11,6 +11,14 @@ RNGeometry::Figures::ConvexPolygon::ConvexPolygon(const std::vector <Point> &poi
     }
 }
 
+//Move constructor
+RNGeometry::Figures::ConvexPolygon::ConvexPolygon(RNGeometry::Figures::ConvexPolygon &&origin) noexcept
+        : Figure(std::move(origin.points)) {
+    if (!isConvex()) {
+        this->points.resize(0);
+    }
+}
+
 //Copy constructor
 RNGeometry::Figures::ConvexPolygon::ConvexPolygon(const ConvexPolygon &origin)
         : Figure(origin.points) {};

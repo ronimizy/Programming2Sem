@@ -2,12 +2,18 @@
 // Created by Георгий Круглов on 21.02.2021.
 //
 
+#include <utility>
+
 #include "../../RNGeometry.h"
 
 
 //Default constructor
 RNGeometry::Lines::PolygonalLine::PolygonalLine(std::vector <RNGeometry::Point> points)
         : points(std::move(points)) {};
+
+//Move constructor
+RNGeometry::Lines::PolygonalLine::PolygonalLine(RNGeometry::Lines::PolygonalLine &&origin)
+        : points(std::move(origin.points)) {};
 
 //Copy constructor
 RNGeometry::Lines::PolygonalLine::PolygonalLine(const PolygonalLine &origin)
