@@ -2,6 +2,9 @@
 // Created by Георгий Круглов on 22.02.2021.
 //
 
+#ifndef POLY_OPERATORS_HPP
+#define POLY_OPERATORS_HPP
+
 #include "../Poly.h"
 
 template<typename T>
@@ -110,7 +113,7 @@ Poly<T> Poly<T>::operator/(T &rhs) const {
 
 template<typename T>
 Poly<T> &Poly<T>::operator*=(Poly &rhs) {
-    std::vector <T> buffer(size() + rhs.size() - 1);
+    std::vector<T> buffer(size() + rhs.size() - 1);
 
     for (int i = size() - 1; i >= 0; i--) {
         for (int j = rhs.size() - 1; j >= 0; j--) {
@@ -146,7 +149,7 @@ T Poly<T>::operator[](int i) const {
 }
 
 template<typename T>
-T& Poly<T>::operator[](int i) {
+T &Poly<T>::operator[](int i) {
     return coefficient(i);
 }
 
@@ -160,7 +163,7 @@ std::istream &operator>>(std::istream &in, Poly<T> &p) {
 }
 
 template<typename T>
-std::ostream &operator<<(std::ostream &out, const Poly<T> &p)  {
+std::ostream &operator<<(std::ostream &out, const Poly<T> &p) {
     for (int i = 0; i < p.size(); i++) {
         if (p[i] < 0) {
             if (i != 0) {
@@ -187,3 +190,5 @@ std::ostream &operator<<(std::ostream &out, const Poly<T> &p)  {
 
     return out;
 }
+
+#endif

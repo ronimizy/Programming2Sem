@@ -828,7 +828,7 @@ namespace pugi
 		xml_node_iterator(xml_node_struct* ref, xml_node_struct* parent);
 
 	public:
-		// Iterator traits
+		// LinkedMapIterator traits
 		typedef ptrdiff_t difference_type;
 		typedef xml_node value_type;
 		typedef xml_node* pointer;
@@ -844,7 +844,7 @@ namespace pugi
 		// Construct an iterator which points to the specified node
 		xml_node_iterator(const xml_node& node);
 
-		// Iterator operators
+		// LinkedMapIterator operators
 		bool operator==(const xml_node_iterator& rhs) const;
 		bool operator!=(const xml_node_iterator& rhs) const;
 
@@ -870,7 +870,7 @@ namespace pugi
 		xml_attribute_iterator(xml_attribute_struct* ref, xml_node_struct* parent);
 
 	public:
-		// Iterator traits
+		// LinkedMapIterator traits
 		typedef ptrdiff_t difference_type;
 		typedef xml_attribute value_type;
 		typedef xml_attribute* pointer;
@@ -886,7 +886,7 @@ namespace pugi
 		// Construct an iterator which points to the specified attribute
 		xml_attribute_iterator(const xml_attribute& attr, const xml_node& parent);
 
-		// Iterator operators
+		// LinkedMapIterator operators
 		bool operator==(const xml_attribute_iterator& rhs) const;
 		bool operator!=(const xml_attribute_iterator& rhs) const;
 
@@ -906,7 +906,7 @@ namespace pugi
 		friend class xml_node;
 
 	public:
-		// Iterator traits
+		// LinkedMapIterator traits
 		typedef ptrdiff_t difference_type;
 		typedef xml_node value_type;
 		typedef xml_node* pointer;
@@ -922,7 +922,7 @@ namespace pugi
 		// Construct an iterator which points to the specified node
 		xml_named_node_iterator(const xml_node& node, const char_t* name);
 
-		// Iterator operators
+		// LinkedMapIterator operators
 		bool operator==(const xml_named_node_iterator& rhs) const;
 		bool operator!=(const xml_named_node_iterator& rhs) const;
 

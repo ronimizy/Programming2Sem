@@ -68,4 +68,9 @@ public:
     friend std::ostream &operator<<(std::ostream &out, const Poly<T> &p);
 };
 
+
+#include "Poly/Constructors.hpp"
+#include "Poly/Operators.hpp"
+#include "Poly/Methods.hpp"
+
 #endif //LAB2_POLY_H

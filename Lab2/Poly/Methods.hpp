@@ -2,6 +2,9 @@
 // Created by Георгий Круглов on 22.02.2021.
 //
 
+#ifndef POLY_METHODS_HPP
+#define POLY_METHODS_HPP
+
 #include "../Poly.h"
 
 //Max degree
@@ -43,3 +46,4 @@ template<typename T> T Poly<T>::substitute(T x) const {
     return sum;
 }
 
+#endif

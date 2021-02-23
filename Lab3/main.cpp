@@ -7,62 +7,21 @@
 
 #include <iostream>
 #include <utility>
-#include <vector>
 #include <cmath>
 #include <limits>
 
 #include "XML/pugixml.hpp"
 
-#include "RNContainer.hpp"
 #include "RNFormat.hpp"
-
-struct Node {
-    double x = 0, y = 0;
-
-    explicit Node(std::string coordinates) {
-        getCoordinatesFromString(std::move(coordinates));
-    }
-
-    double distance(Node &node) const {
-        return sqrt(pow((x - node.x), 2) + pow((y - node.y), 2));
-    }
-    
-    friend std::ostream& operator<<(std::ostream &lhs, Node &rhs) {
-        lhs << "x: " << rhs.x << ", y: " << rhs.y;
-        return lhs;
-    }
-
-    
-private:
-    void getCoordinatesFromString(const std::string &str) {
-        std::vector<double> one;
-        
-        int i = 0;
-        std::string buffer;
-        
-        for (auto &c : str) {
-            if (c != ',') {
-                buffer += c;
-            } else {
-                one.push_back(std::stod(buffer));
-                buffer = "";
-            }
-        }
-        if (!buffer.empty()) {
-            one.push_back(std::stod(buffer));
-        }
-        
-        x = one[0];
-        y = one[1];
-    }
-};
+#include "RNContainer.h"
+//#include "Node.h"
 
 
 int main() {
-    
+
     pugi::xml_document document;
     pugi::xml_parse_result result = document.load_file("../data.xml");
-    
+
     if (result.status) {
         std::cout << "File not loaded, description: " << result.description() << std::endl;
         exit(0);
@@ -72,8 +31,8 @@ int main() {
     std::cout << "\n\n\n\n";
 
     RNContainer::LinkedMap<std::string, int> streets;
-    RNContainer::MultiMap<std::string, std::string, int> stops;
-    RNContainer::MultiMap<std::string, std::string, std::vector<Node>> lengths;
+    RNContainer::LinkedMap<std::string, RNContainer::LinkedMap<std::string, int>> stops;
+    RNContainer::LinkedMap<std::string, RNContainer::LinkedMap<std::string, std::vector<Node>>> lengths;
 
     pugi::xml_node set = document.child("dataset");
 
@@ -122,7 +81,7 @@ int main() {
     for (auto &type : stops) {
         std::pair<std::string, int> top1;
 
-        for (auto &route : *type.second) {
+        for (auto &route : type.second) {
             if (route.second > top1.second) {
                 top1 = {route.first, route.second};
             }
@@ -137,7 +96,7 @@ int main() {
     for (auto &type : lengths) {
         std::pair<std::string, double> top1 = {"", 0};
 
-        for (auto &route : *type.second) {
+        for (auto &route : type.second) {
             auto &nodes = route.second;
             double routeLength = 0;
 

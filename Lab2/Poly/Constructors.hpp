@@ -2,6 +2,9 @@
 // Created by Георгий Круглов on 22.02.2021.
 //
 
+#ifndef POLY_CONSTRUCTORS_HPP
+#define POLY_CONSTRUCTORS_HPP
+
 #include "../Poly.h"
 
 //Default constructor
@@ -24,3 +27,5 @@ template<typename T> Poly<T>::~Poly() {
     coefficients.resize(0);
     std::cout << "Destructor's work have been done" << std::endl;
 }
+
+#endif
