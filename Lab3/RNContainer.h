@@ -87,6 +87,6 @@ namespace RNContainer {
 #include "RNContainer/LinkedMap/LinkedMap.hpp"
 #include "RNContainer/LinkedMap/LinkedMapCell.hpp"
 
-#include "RNContainer/Instances.cpp"
+//#include "RNContainer/Instances.cpp"
 
 #endif //LAB3_RNCONTAINER_H

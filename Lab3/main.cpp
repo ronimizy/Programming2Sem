@@ -14,7 +14,7 @@
 
 #include "RNFormat.hpp"
 #include "RNContainer.h"
-//#include "Node.h"
+#include "Node.h"
 
 
 int main() {
