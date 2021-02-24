@@ -9,6 +9,15 @@
 #include <iostream>
 
 template<typename T>
+class Poly;
+
+template<typename T>
+std::istream &operator>>(std::istream &in, Poly<T> &p);
+
+template<typename T>
+std::ostream &operator<<(std::ostream &out, const Poly<T> &p);
+
+template<typename T>
 class Poly {
     std::vector <T> coefficients;
 
@@ -63,9 +72,9 @@ public:
 
     T& operator[](int i);
 
-    friend std::istream &operator>>(std::istream &in, Poly<T> &p);
+    friend std::istream &operator>> <> (std::istream &in, Poly<T> &p);
 
-    friend std::ostream &operator<<(std::ostream &out, const Poly<T> &p);
+    friend std::ostream &operator<< <> (std::ostream &out, const Poly<T> &p);
 };
 
 

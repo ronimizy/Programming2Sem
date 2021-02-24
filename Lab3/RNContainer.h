@@ -70,9 +70,7 @@ namespace RNContainer {
 
             Iterator &operator++();
 
-            friend bool operator==(const Iterator &lhs, const Iterator &rhs);
-
-            friend bool operator!=(const Iterator &lhs, const Iterator &rhs);
+            bool operator!=(const Iterator &rhs);
 
         private:
             pointer ptr;

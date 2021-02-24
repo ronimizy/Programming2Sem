@@ -5,6 +5,8 @@
 #ifndef RNLINKEDMAP_ITERATOR
 #define RNLINKEDMAP_ITERATOR
 
+#include "../../RNContainer.h"
+
 template<typename Key, typename Element>
 RNContainer::LinkedMap<Key, Element>::Iterator::Iterator(RNContainer::LinkedMap<Key, Element>::Iterator::pointer ptr)
         : ptr(ptr) {}
@@ -24,15 +26,8 @@ typename RNContainer::LinkedMap<Key, Element>::Iterator &RNContainer::LinkedMap<
 }
 
 template<typename Key, typename Element>
-bool operator!=(const typename RNContainer::LinkedMap<Key, Element>::Iterator &lhs,
-                const typename RNContainer::LinkedMap<Key, Element>::Iterator &rhs) {
-    return lhs.ptr != rhs.ptr;
-}
-
-template<typename Key, typename Element>
-bool operator==(const typename RNContainer::LinkedMap<Key, Element>::Iterator &lhs,
-                const typename RNContainer::LinkedMap<Key, Element>::Iterator &rhs) {
-    return lhs.ptr == rhs.ptr;
+bool RNContainer::LinkedMap<Key, Element>::Iterator::operator!=(const typename RNContainer::LinkedMap<Key, Element>::Iterator &rhs) {
+    return ptr != rhs.ptr;
 }
 
 #endif //RNLINKEDMAP_ITERATOR
