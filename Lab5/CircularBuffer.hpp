@@ -23,7 +23,7 @@ class CircularBuffer {
         }
     }
 
-    T *get_(const size_t &index) {
+    T *get_(const size_t &index) const {
         if (size_) {
             return memory[(front_ + index) % size_];
         } else {
@@ -96,7 +96,7 @@ public:
             }
         };
 
-        pointer operator->() { return buffer_.get_(index_); }
+        pointer operator->() const { return buffer_.get_(index_); }
 
 
         Iterator &operator++() {
@@ -129,7 +129,7 @@ public:
             return temp;
         }
 
-        bool operator!=(Iterator &rhs) {
+        bool operator!=(Iterator &rhs) const {
             return index_ != rhs.index_;
         }
 
@@ -141,17 +141,23 @@ public:
     /** Methods **/
     void append(T value) { put_(new T(value)); }
 
-    void append(T *value) { put_(value); }
+    void append(T *value) {
+        if (!value) {
+            throw std::invalid_argument("Appending no value");
+        }
+
+        put_(value);
+    }
 
     T *pop() { return pop_(); }
 
-    T *front() { return memory[front_]; }
+    T *front() const { return memory[front_]; }
 
-    T *back() { return memory[back_]; }
+    T *back() const { return memory[back_]; }
 
-    Iterator begin() { return Iterator(*this, front_); }
+    Iterator begin() const { return Iterator(*this, front_); }
 
-    Iterator end() { return Iterator(*this, back_ + 1); }
+    Iterator end() const { return Iterator(*this, back_ + 1); }
 
     void resize(size_t newSize) {
         if (size_ == newSize) { return; }
@@ -166,9 +172,11 @@ public:
 
         memory = n;
         front_ = 0;
-        back_ = size_ < newSize ? size_ - 1 : newSize - 1;
+        back_ = (size_ < newSize) ? (size_ - 1) : (newSize == 0 ? 0 : newSize - 1);
         size_ = newSize;
     }
+
+    size_t capacity() const { return size_; }
 
     /** Operators **/
     T *operator[](const size_t &index) { return get_(index); }
