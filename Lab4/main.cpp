@@ -6,19 +6,21 @@
 #include "CPoint.hpp"
 
 int main() {
-    std::vector<int> a = {3, 3, 3, 1}; //0
-    std::vector<int> b = {3, 3, 1, 3}; //0
-    std::vector<int> c = {3, 1, 3, 3}; //0
-    std::vector<int> d = {3, 3, 4, 3, 3}; //1
-    std::vector<int> e = {3, 3, 4, 2, 3}; //0
-    std::vector<int> f = {3, 2, 4, 3, 3}; // 0
-    std::vector<int> g = {3, 3, 3, 3, 3}; // 1
+    std::vector<int> a = {3, 3, 3, 1};
+    std::vector<int> b = {3, 3, 1, 3};
+    std::vector<int> c = {3, 1, 3, 3};
+    std::vector<int> d = {3, 3, 4, 3, 3};
+    std::vector<int> e = {3, 3, 4, 2, 3};
+    std::vector<int> f = {3, 2, 4, 3, 3};
+    std::vector<int> g = {3, 3, 3, 3, 3};
+    std::vector<int> h = {3, 3, 4, 5, 5};
 
     std::vector<int> inc = {1, 2, 3, 4};
     std::vector<int> dec = {4, 3, 2, 1};
 
     std::string s = "aaa";
     std::string s1 = "aab";
+    std::string s2 = "abc";
 
     std::vector<CPoint> p{{1, 0},
                           {0, 1},
@@ -111,14 +113,18 @@ int main() {
     {
         std::cout << "is_sorted\n";
         std::cout << "\tint\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<int>(inc.begin(), inc.end(), RNPredicate::Increasing<int>()) << " – 1\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<int>(dec.begin(), dec.end(), RNPredicate::Decreasing<int>()) << " – 1\n\t\t";
+        std::cout << RNAlgorithm::is_sorted<int>(inc.begin(), inc.end(), RNPredicate::Increasing<int>())
+                  << " – 1\n\t\t";
+        std::cout << RNAlgorithm::is_sorted<int>(dec.begin(), dec.end(), RNPredicate::Decreasing<int>())
+                  << " – 1\n\t\t";
         std::cout << RNAlgorithm::is_sorted<int>(a.begin(), a.end(), RNPredicate::Increasing<int>()) << " – 0\n\t\t";
         std::cout << RNAlgorithm::is_sorted<int>(g.begin(), g.end(), RNPredicate::Decreasing<int>()) << " – 1\n\n";
 
         std::cout << "\tstd::string\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<std::string>(s.begin(), s.end(), RNPredicate::Increasing<char>()) << " – 1\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<std::string>(s1.begin(), s1.end(), RNPredicate::Decreasing<char>()) << " – 0\n\n";
+        std::cout << RNAlgorithm::is_sorted<std::string>(s.begin(), s.end(), RNPredicate::Increasing<char>())
+                  << " – 1\n\t\t";
+        std::cout << RNAlgorithm::is_sorted<std::string>(s1.begin(), s1.end(), RNPredicate::Decreasing<char>())
+                  << " – 0\n\n";
 
         std::cout << "\tCPoint\n\t\t";
         std::cout << RNAlgorithm::is_sorted<CPoint>(p.begin(), p.end(), RNPredicate::Decreasing<CPoint>())
@@ -127,28 +133,27 @@ int main() {
                   << " – 1\n\n\n";
     }
 
-    //ToDo
-    /** is_partitioned **
+    /** is_partitioned **/
     {
-        std::cout << "is_sorted\n";
+        std::cout << "is_partitioned\n";
         std::cout << "\tint\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<int>(inc.begin(), inc.end(), RNPredicate::Increasing<int>()) << " – 1\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<int>(dec.begin(), dec.end(), RNPredicate::Decreasing<int>()) << " – 1\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<int>(a.begin(), a.end(), RNPredicate::Increasing<int>()) << " – 0\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<int>(g.begin(), g.end(), RNPredicate::Decreasing<int>()) << " – 1\n\n";
+        std::cout << RNAlgorithm::is_partitioned<int>(h.begin(), h.end(), RNPredicate::MoreThan(4)) << " – 1\n\t\t";
+        std::cout << RNAlgorithm::is_partitioned<int>(g.begin(), g.end(), RNPredicate::MoreThan(2)) << " – 0\n\n";
 
         std::cout << "\tstd::string\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<std::string>(s.begin(), s.end(), RNPredicate::Increasing<char>()) << " – 1\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<std::string>(s1.begin(), s1.end(), RNPredicate::Decreasing<char>()) << " – 0\n\n";
+        std::cout << RNAlgorithm::is_partitioned<std::string>(s2.begin(), s2.end(), RNPredicate::MoreThan('b'))
+                  << " – 1\n\t\t";
+        std::cout << RNAlgorithm::is_partitioned<std::string>(s.begin(), s.end(), RNPredicate::MoreThan('b'))
+                  << " – 0\n\n";
 
         std::cout << "\tCPoint\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<CPoint>(p.begin(), p.end(), RNPredicate::Increasing<CPoint>())
+        std::cout << RNAlgorithm::is_partitioned<CPoint>(p.begin(), p.end(), RNPredicate::EqualTo(CPoint(0, 1)))
                   << " – 0\n\t\t";
-        std::cout << RNAlgorithm::is_sorted<CPoint>(p1.begin(), p1.end(), RNPredicate::Increasing<CPoint>())
+        std::cout << RNAlgorithm::is_partitioned<CPoint>(p1.begin(), p1.end(), RNPredicate::MoreThan(CPoint(2, 1)))
                   << " – 1\n\n\n";
-    } **/
+    }
 
-    
+
     std::cout << RNAlgorithm::is_palindrome<int>(a.begin(), a.end()) << std::endl;
     std::cout << RNAlgorithm::is_palindrome<int>(b.begin(), b.end()) << std::endl;
     std::cout << RNAlgorithm::is_palindrome<int>(c.begin(), c.end()) << std::endl;

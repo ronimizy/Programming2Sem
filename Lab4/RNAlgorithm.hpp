@@ -72,20 +72,36 @@ namespace RNAlgorithm {
         return true;
     }
 
-    //ToDo – is_partitioned
     template<typename T, typename Allocator = std::allocator<T>, typename Predicate>
     bool is_partitioned(Allocator begin, Allocator end, Predicate predicate) {
+        bool last = predicate(*(begin++));
+
+        bool flipped = false;
+        size_t before;
+        size_t after;
+
         for (auto it = begin; it != end; it++) {
-            if (!predicate(*begin)) {
-                return false;
+            if (predicate(*it) != last) {
+                if (flipped) {
+                    return false;
+                } else {
+                    flipped = true;
+                    last = !last;
+                }
+            } else {
+                if (flipped) {
+                    after++;
+                } else {
+                    before++;
+                }
             }
         }
 
-        return true;
+        return flipped && (before > 1 || after > 1);
     }
 
     template<typename T, typename Allocator = std::allocator<T> >
-    T *find_not(Allocator begin, Allocator end, T&& nemesis) {
+    T *find_not(Allocator begin, Allocator end, T &&nemesis) {
         for (auto it = begin; it != end; it++) {
             if (*it != nemesis) {
                 return &(*it);
@@ -96,7 +112,7 @@ namespace RNAlgorithm {
     }
 
     template<typename T, typename Allocator = std::allocator<T> >
-    T *find_backward(Allocator begin, Allocator end, T&& ally) {
+    T *find_backward(Allocator begin, Allocator end, T &&ally) {
         for (auto it = end; it != begin; it--) {
             if (*it == ally) {
                 return &(*it);
