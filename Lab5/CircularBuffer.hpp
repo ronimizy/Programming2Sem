@@ -15,11 +15,50 @@ class CircularBuffer {
     size_t front_ = 0;
     size_t back_ = 0;
 
+    void increment(size_t &i, long by = 1) {
+        i = (i + by) % size_;
+    }
 
-    void put_(T *value) {
+    size_t incremented(size_t &i, long by = 1) const {
+        return (i + by) % size_;
+    }
+
+    void decrement(size_t &i, long by = 1) {
+        i = (i - by + size_) % size_;
+    }
+
+    size_t decremented(size_t &i, long by = 1) const {
+        return (i - by + size_) % size_;
+    }
+
+    size_t span() const {
+        if (back_ - front_ < 0) {
+            return back_ - front_ + size_;
+        } else {
+            return back_ - front_;
+        }
+    }
+
+
+    void put_(T *value, bool atBack) {
         if (size_) {
-            memory[back_] = value;
-            back_ = (back_ + 1) % size_;
+            if (atBack) {
+                memory[back_] = value;
+
+                if (incremented(back_) == front_) {
+                    increment(front_);
+                }
+
+                increment(back_);
+            } else {
+                memory[front_] = value;
+
+                if (decremented(front_) == back_) {
+                    decrement(back_);
+                }
+
+                front_ = (front_ - 1 + size_) % size_;
+            }
         }
     }
 
@@ -31,12 +70,29 @@ class CircularBuffer {
         }
     }
 
-    T *pop_() {
+    T *pop_(bool atBack) {
         if (size_) {
-            T *value = memory[front_];
-            front_ = (front_ + 1) % size_;
+            if (atBack) {
+                T *value = memory[back_];
 
-            return value;
+                if (decremented(back_) == front_) {
+                    decrement(front_);
+                }
+
+                decrement(back_);
+
+                return value;
+            } else {
+                T *value = memory[front_];
+
+                if (incremented(front_) == back_) {
+                    increment(back_);
+                }
+
+                increment(front_);
+
+                return value;
+            }
         } else {
             return nullptr;
         }
@@ -84,7 +140,7 @@ public:
 
     /** Iterator **/
     struct Iterator {
-        using iterator_category = std::bidirectional_iterator_tag;
+        using iterator_category = std::random_access_iterator_tag;
         using difference_type = std::ptrdiff_t;
         using value_type = T;
         using pointer = T *;
@@ -133,23 +189,107 @@ public:
             return index_ != rhs.index_;
         }
 
+        pointer operator[](size_t i) const {
+            return buffer_.get_(buffer_.front_ + index_ + i);
+        }
+
+        Iterator &operator+=(long n) {
+            buffer_.increment(index_, n);
+
+            return *this;
+        }
+
+        Iterator &operator-=(long n) {
+            buffer_.decrement(index_, n);
+
+            return *this;
+        }
+
+        Iterator &operator+(const long n) const {
+            Iterator iterator(buffer_, index_);
+            buffer_.increment(iterator.index_, n);
+
+            return iterator;
+        }
+
+        friend Iterator &operator+(const long n, const Iterator &i) {
+            Iterator iterator(i.buffer_, i.index_);
+            i.buffer_.increment(iterator.index_, n);
+
+            return iterator;
+        }
+
+        Iterator &operator-(const long n) const {
+            Iterator iterator(buffer_, index_);
+            buffer_.decrement(iterator.index_, n);
+
+            return iterator;
+        }
+
+        friend Iterator &operator-(long n, const Iterator &i) {
+            Iterator iterator(i.buffer_, i.index_);
+            i.buffer_.decrement(iterator.index_, n);
+
+            return iterator;
+        }
+
+        size_t operator-(const Iterator &rhs) const {
+            if (buffer_.back_ - buffer_.front_ < 0) {
+                return buffer_.size_ - abs(index_ - rhs.index_);
+            } else {
+                return abs(index_ - rhs.index_);
+            }
+        }
+
+        bool operator<(const Iterator &rhs) const {
+            if (buffer_.back_ - buffer_.front_ < 0) {
+                return buffer_.size_ - index_ + rhs.index_ < 0;
+            } else {
+                return index_ - rhs.index_ < 0;
+            }
+        }
+
+        bool operator>(const Iterator &rhs) const {
+            if (buffer_.back_ - buffer_.front_ < 0) {
+                return buffer_.size_ - index_ + rhs.index_ > 0;
+            } else {
+                return index_ - rhs.index_ > 0;
+            }
+        }
+
+        bool operator<=(const Iterator &rhs) const {
+            if (buffer_.back_ - buffer_.front_ < 0) {
+                return buffer_.size_ - index_ + rhs.index_ <= 0;
+            } else {
+                return index_ - rhs.index_ <= 0;
+            }
+        }
+
+        bool operator>=(const Iterator &rhs) const {
+            if (buffer_.back_ - buffer_.front_ < 0) {
+                return buffer_.size_ - index_ + rhs.index_ >= 0;
+            } else {
+                return index_ - rhs.index_ >= 0;
+            }
+        }
+
+
     private:
         CircularBuffer &buffer_;
         size_t index_;
     };
 
     /** Methods **/
-    void append(T value) { put_(new T(value)); }
+    void push_back(T value) { put_(new T(value), true); }
 
-    void append(T *value) {
-        if (!value) {
-            throw std::invalid_argument("Appending no value");
-        }
+    void push_back(T *value) { put_(value, true); }
 
-        put_(value);
-    }
+    void push_front(T value) { put_(new T(value), false); }
 
-    T *pop() { return pop_(); }
+    void push_front(T *value) { put_(value, false); }
+
+    T *pop_back() { return pop_(true); }
+    T *pop_front() { return pop_(false); }
 
     T *front() const { return memory[front_]; }
 
@@ -177,6 +317,8 @@ public:
     }
 
     size_t capacity() const { return size_; }
+
+    size_t size() const { return span(); }
 
     /** Operators **/
     T *operator[](const size_t &index) { return get_(index); }
