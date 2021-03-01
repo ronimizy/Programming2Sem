@@ -7,8 +7,8 @@
 
 namespace RNAlgorithm {
 
-    template<typename T, typename Allocator = std::allocator<T>, typename Predicate>
-    bool all_of(Allocator begin, Allocator end, Predicate predicate) {
+    template<typename T, typename iterator = typename T::iterator, typename Predicate>
+    bool all_of(iterator begin, iterator end, Predicate predicate) {
         for (auto it = begin; it != end; it++) {
             if (!predicate(*it)) {
                 return false;
@@ -18,8 +18,8 @@ namespace RNAlgorithm {
         return true;
     }
 
-    template<typename T, typename Allocator = std::allocator<T>, typename Predicate>
-    bool any_of(Allocator begin, Allocator end, Predicate predicate) {
+    template<typename T, typename iterator = typename T::iterator, typename Predicate>
+    bool any_of(iterator begin, iterator end, Predicate predicate) {
         for (auto it = begin; it != end; it++) {
             if (predicate(*it)) {
                 return true;
@@ -29,8 +29,8 @@ namespace RNAlgorithm {
         return false;
     }
 
-    template<typename T, typename Allocator = std::allocator<T>, typename Predicate>
-    bool none_of(Allocator begin, Allocator end, Predicate predicate) {
+    template<typename T, typename iterator = typename T::iterator, typename Predicate>
+    bool none_of(iterator begin, iterator end, Predicate predicate) {
         for (auto it = begin; it != end; it++) {
             if (predicate(*it)) {
                 return false;
@@ -40,8 +40,8 @@ namespace RNAlgorithm {
         return true;
     }
 
-    template<typename T, typename Allocator = std::allocator<T>, typename Predicate>
-    bool one_of(Allocator begin, Allocator end, Predicate predicate) {
+    template<typename T, typename iterator = typename T::iterator, typename Predicate>
+    bool one_of(iterator begin, iterator end, Predicate predicate) {
         bool satisfied = false;
 
         for (auto it = begin; it != end; it++) {
@@ -57,8 +57,12 @@ namespace RNAlgorithm {
         return satisfied;
     }
 
-    template<typename T, typename Allocator = std::allocator<T>, typename Predicate>
-    bool is_sorted(Allocator begin, Allocator end, Predicate predicate) {
+    template<typename T, typename iterator = typename T::iterator, typename Predicate>
+    bool is_sorted(iterator begin, iterator end, Predicate predicate) {
+        if (begin == end) {
+            return true;
+        }
+
         auto prev = begin++;
 
         for (auto it = begin; it != end; it++) {
@@ -72,8 +76,12 @@ namespace RNAlgorithm {
         return true;
     }
 
-    template<typename T, typename Allocator = std::allocator<T>, typename Predicate>
-    bool is_partitioned(Allocator begin, Allocator end, Predicate predicate) {
+    template<typename T, typename iterator = typename T::iterator, typename Predicate>
+    bool is_partitioned(iterator begin, iterator end, Predicate predicate) {
+        if (begin == end) {
+            return false;
+        }
+
         bool last = predicate(*(begin++));
 
         bool flipped = false;
@@ -100,8 +108,8 @@ namespace RNAlgorithm {
         return flipped && (before > 1 || after > 1);
     }
 
-    template<typename T, typename Allocator = std::allocator<T> >
-    T *find_not(Allocator begin, Allocator end, T &&nemesis) {
+    template<typename T, typename iterator = typename T::iterator >
+    T *find_not(iterator begin, iterator end, T &&nemesis) {
         for (auto it = begin; it != end; it++) {
             if (*it != nemesis) {
                 return &(*it);
@@ -111,8 +119,8 @@ namespace RNAlgorithm {
         return nullptr;
     }
 
-    template<typename T, typename Allocator = std::allocator<T> >
-    T *find_backward(Allocator begin, Allocator end, T &&ally) {
+    template<typename T, typename iterator = typename T::iterator >
+    T *find_backward(iterator begin, iterator end, T &&ally) {
         for (auto it = end; it != begin; it--) {
             if (*it == ally) {
                 return &(*it);
@@ -122,8 +130,8 @@ namespace RNAlgorithm {
         return nullptr;
     }
 
-    template<typename T, typename Allocator = std::allocator<T> >
-    bool is_palindrome(Allocator left, Allocator right) {
+    template<typename T, typename iterator = typename T::iterator >
+    bool is_palindrome(iterator left, iterator right) {
         right--;
 
         while (left != right) {

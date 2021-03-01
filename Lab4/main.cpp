@@ -96,7 +96,7 @@ int main() {
         std::cout << RNAlgorithm::one_of<int>(a.begin(), a.end(), RNPredicate::LessThan(2)) << " – 1\n\t\t";
         std::cout << RNAlgorithm::one_of<int>(a.begin(), a.end(), RNPredicate::MoreThan(2)) << " – 0\n\t\t";
         std::cout << RNAlgorithm::one_of<int>(a.begin(), a.end(), RNPredicate::EqualTo(3)) << " – 0\n\t\t";
-        std::cout << RNAlgorithm::one_of<int>(g.begin(), g.end(), RNPredicate::EqualTo(3)) << " – 1\n\n";
+        std::cout << RNAlgorithm::one_of<int>(g.begin(), g.end(), RNPredicate::EqualTo(3)) << " – 0\n\n";
 
         std::cout << "\tstd::string\n\t\t";
         std::cout << RNAlgorithm::one_of<std::string>(s.begin(), s.end(), RNPredicate::EqualTo('b')) << " – 0\n\t\t";

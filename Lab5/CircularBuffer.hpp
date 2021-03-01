@@ -5,8 +5,6 @@
 #ifndef LAB5_CIRCULARBUFFER_HPP
 #define LAB5_CIRCULARBUFFER_HPP
 
-#include <vector>
-
 template<typename T>
 class CircularBuffer {
     T **memory;
@@ -284,7 +282,10 @@ public:
 
     void push_back(T *value) { put_(value, true); }
 
-    void push_front(T value) { put_(new T(value), false); }
+    void push_front(T value) {
+        T * a = new T;
+        *a = value;
+        put_(a, false); }
 
     void push_front(T *value) { put_(value, false); }
 
