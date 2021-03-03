@@ -36,12 +36,12 @@ class CircularBuffer {
 public:
     /** Life cycle **/
     CircularBuffer(size_t capacity = 0) : capacity_(capacity) {
-        memory = allocator_.allocate(capacity);
+        memory = std::allocator_traits<allocator_type>::allocate(allocator_, capacity);
     }
 
     //Copy constructor
     CircularBuffer(const CircularBuffer &origin) : capacity_(origin.capacity_) {
-        memory = allocator_.allocate(origin.capacity_);
+        memory = std::allocator_traits<allocator_type>::allocate(allocator_, origin.capacity_);
 
         for (auto &it : origin) {
             push_back(it);
@@ -66,10 +66,10 @@ public:
 
     CircularBuffer &operator=(const CircularBuffer &rhs) {
         if (this != &rhs) {
-            allocator_.deallocate(memory, capacity_);
+            std::allocator_traits<allocator_type>::deallocate(allocator_, capacity_, memory);
 
             capacity_ = rhs.capacity_;
-            memory = allocator_.allocate(capacity_);
+            memory = std::allocator_traits<allocator_type>::allocate(allocator_, capacity_);
             front_ = 0;
             back_ = 0;
 
@@ -82,7 +82,7 @@ public:
     }
 
     ~CircularBuffer() {
-        allocator_.deallocate(memory, capacity_);
+        std::allocator_traits<allocator_type>::deallocate(allocator_, capacity_, memory);
     }
 
     /** Iterator.hpp **/
@@ -241,7 +241,7 @@ public:
     void resize(size_t newSize) {
         if (capacity_ == newSize) { return; }
 
-        T *newMemory = allocator_.allocate(newSize);
+        T *newMemory = std::allocator_traits<allocator_type>::allocate(allocator_, newSize);
 
         size_t i = 0;
         for (auto &it : *this) {
@@ -250,11 +250,12 @@ public:
             newMemory[i++] = it;
         }
 
-        allocator_.deallocate(memory, capacity_);
+        std::allocator_traits<allocator_type>::deallocate(allocator_, capacity_, memory);
 
         memory = newMemory;
         front_ = 0;
         back_ = (capacity_ < newSize) ? (capacity_) : (newSize == 0 ? 0 : newSize);
+
         capacity_ = newSize;
         if (size_ > newSize) {
             size_ = newSize;
@@ -262,8 +263,8 @@ public:
     }
 
     void sizeToFit() {
-        allocator_.deallocate(front_, memory);
-        allocator_.deallocate(capacity_ - back_ - 1, memory + back_);
+        memory = std::allocator_traits<allocator_type>::allocate(allocator_, front_, memory);
+        memory = std::allocator_traits<allocator_type>::allocate(allocator_, capacity_ - back_ - 1, memory + back_);
 
         memory += front_;
     }

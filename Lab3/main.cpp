@@ -19,6 +19,8 @@
 
 int main() {
 
+    clock_t start = clock();
+
     pugi::xml_document document;
     pugi::xml_parse_result result = document.load_file("../data.xml");
 
@@ -131,6 +133,8 @@ int main() {
 
     std::cout << "\n|–––––––––––––––––––––––––––––––|";
     std::cout << "\n\n\n\n";
+
+    std::cout << "Execution took " << (double )(clock() - start) / CLOCKS_PER_SEC << " sec";
 
     return 0;
 }

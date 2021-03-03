@@ -43,7 +43,7 @@ void CircularBuffer<T, allocator_type>::put_(T &value, bool atBack, bool copy) {
 
         if (atBack) {
             if (copy) {
-                allocator_.construct(&memory[back_], value);
+                std::allocator_traits<allocator_type>::construct(allocator_, &memory[back_], value);
             } else {
                 memory[back_] = value;
             }
@@ -52,7 +52,7 @@ void CircularBuffer<T, allocator_type>::put_(T &value, bool atBack, bool copy) {
             size_++;
         } else {
             if (copy) {
-                allocator_.construct(&memory[front_], value);
+                std::allocator_traits<allocator_type>::construct(allocator_, &memory[front_], value);
             } else {
                 memory[front_] = value;
             }
