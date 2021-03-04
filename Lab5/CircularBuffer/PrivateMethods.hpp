@@ -43,18 +43,18 @@ void CircularBuffer<T, allocator_type>::put_(T &value, bool atBack, bool copy) {
 
         if (atBack) {
             if (copy) {
-                std::allocator_traits<allocator_type>::construct(allocator_, &memory[back_], value);
+                std::allocator_traits<allocator_type>::construct(allocator_, &memory_[back_], value);
             } else {
-                memory[back_] = value;
+                memory_[back_] = value;
             }
 
             increment(back_);
             size_++;
         } else {
             if (copy) {
-                std::allocator_traits<allocator_type>::construct(allocator_, &memory[front_], value);
+                std::allocator_traits<allocator_type>::construct(allocator_, &memory_[front_], value);
             } else {
-                memory[front_] = value;
+                memory_[front_] = value;
             }
 
             increment(front_);
@@ -67,7 +67,7 @@ void CircularBuffer<T, allocator_type>::put_(T &value, bool atBack, bool copy) {
 template<typename T, typename allocator_type>
 T& CircularBuffer<T, allocator_type>::get_(const size_t &index) const {
     if (capacity_ && size_) {
-        return memory[incremented(front_, index)];
+        return memory_[incremented(front_, index)];
     } else {
         throw std::out_of_range("Empty circular buffer");
     }
@@ -79,13 +79,13 @@ T& CircularBuffer<T, allocator_type>::pop_(bool atBack) {
     if (capacity_ && size_) {
         if (atBack) {
             decrement(back_);
-            T &value = memory[back_];
+            T &value = memory_[back_];
             size_--;
 
             return value;
         } else {
             increment(front_);
-            T &value = memory[front_];
+            T &value = memory_[front_];
             size_--;
 
             return value;

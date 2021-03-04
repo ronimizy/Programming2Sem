@@ -6,6 +6,8 @@ int main() {
     CircularBuffer<int> intBuffer(10);
     CircularBuffer<int> b(0);
 
+
+
     for (int i = 0; i < 20; ++i) {
         intBuffer.push_back(i);
     }

@@ -5,11 +5,11 @@
 #ifndef LAB5_CIRCULARBUFFER_HPP
 #define LAB5_CIRCULARBUFFER_HPP
 
-template<typename T, typename allocator_type = std::allocator<T> >
+template<typename T, typename _Alloc = std::allocator<T> >
 class CircularBuffer {
-    allocator_type allocator_ = allocator_type();
+    _Alloc allocator_ = _Alloc();
 
-    T *memory;
+    T *memory_;
 
     size_t capacity_;
     size_t size_ = 0;
@@ -35,12 +35,12 @@ class CircularBuffer {
 public:
     /** Life cycle **/
     CircularBuffer(size_t capacity = 0) : capacity_(capacity) {
-        memory = std::allocator_traits<allocator_type>::allocate(allocator_, capacity);
+        memory_ = std::allocator_traits<_Alloc>::allocate(allocator_, capacity);
     }
 
     //Copy constructor
     CircularBuffer(const CircularBuffer &origin) : capacity_(origin.capacity_) {
-        memory = std::allocator_traits<allocator_type>::allocate(allocator_, origin.capacity_);
+        memory_ = std::allocator_traits<_Alloc>::allocate(allocator_, origin.capacity_);
 
         for (auto &it : origin) {
             push_back(it);
@@ -48,18 +48,18 @@ public:
     }
 
     //Copy insert constructor
-    CircularBuffer(const CircularBuffer &origin, allocator_type &alloc) : CircularBuffer(origin) {
+    CircularBuffer(const CircularBuffer &origin, _Alloc &alloc) : CircularBuffer(origin) {
         allocator_ = alloc;
     }
 
     //Move constructor
     CircularBuffer(CircularBuffer &&origin) noexcept: capacity_(origin.capacity_) {
-        memory = origin.memory;
-        origin.memory = nullptr;
+        memory_ = origin.memory_;
+        origin.memory_ = nullptr;
     }
 
     //Move insert constructor
-    CircularBuffer(CircularBuffer &&origin, allocator_type &&alloc) noexcept : CircularBuffer(origin) {
+    CircularBuffer(CircularBuffer &&origin, _Alloc &&alloc) noexcept : CircularBuffer(origin) {
         allocator_ = alloc;
     }
 
@@ -67,10 +67,10 @@ public:
         if (this != &rhs) {
             allocator_ = rhs.get_allocator();
 
-            std::allocator_traits<allocator_type>::deallocate(allocator_, capacity_, memory);
+            std::allocator_traits<_Alloc>::deallocate(allocator_, capacity_, memory_);
 
             capacity_ = rhs.capacity_;
-            memory = std::allocator_traits<allocator_type>::allocate(allocator_, capacity_);
+            memory_ = std::allocator_traits<_Alloc>::allocate(allocator_, capacity_);
             front_ = 0;
             back_ = 0;
 
@@ -83,7 +83,7 @@ public:
     }
 
     ~CircularBuffer() {
-        std::allocator_traits<allocator_type>::deallocate(allocator_, capacity_, memory);
+        std::allocator_traits<_Alloc>::deallocate(allocator_, capacity_, memory_);
     }
 
     /** Iterator.hpp **/
@@ -231,9 +231,9 @@ public:
 
     T &pop_front() { return pop_(false); }
 
-    T &front() const { return memory[front_]; }
+    T &front() const { return memory_[front_]; }
 
-    T &back() const { return memory[decremented(back_)]; }
+    T &back() const { return memory_[decremented(back_)]; }
 
     iterator begin() { return iterator(*this, 0); }
 
@@ -242,7 +242,7 @@ public:
     void resize(size_t newSize) {
         if (capacity_ == newSize) { return; }
 
-        T *newMemory = std::allocator_traits<allocator_type>::allocate(allocator_, newSize);
+        T *newMemory = std::allocator_traits<_Alloc>::allocate(allocator_, newSize);
 
         size_t i = 0;
         for (auto &it : *this) {
@@ -251,9 +251,9 @@ public:
             newMemory[i++] = it;
         }
 
-        std::allocator_traits<allocator_type>::deallocate(allocator_, capacity_, memory);
+        std::allocator_traits<_Alloc>::deallocate(allocator_, capacity_, memory_);
 
-        memory = newMemory;
+        memory_ = newMemory;
         front_ = 0;
         back_ = (capacity_ < newSize) ? (capacity_) : (newSize == 0 ? 0 : newSize);
 
@@ -264,13 +264,36 @@ public:
     }
 
     void sizeToFit() {
-        memory = std::allocator_traits<allocator_type>::allocate(allocator_, front_, memory);
-        memory = std::allocator_traits<allocator_type>::allocate(allocator_, capacity_ - back_ - 1, memory + back_);
+        memory_ = std::allocator_traits<_Alloc>::allocate(allocator_, front_, memory_);
+        memory_ = std::allocator_traits<_Alloc>::allocate(allocator_, capacity_ - back_ - 1, memory_ + back_);
 
-        memory += front_;
+        memory_ += front_;
     }
 
-    allocator_type get_allocator() { return allocator_; }
+    void swap(CircularBuffer &rhs) {
+        T* tmpMem = memory_;
+        size_t  tmpCap = capacity_,
+                tmpFront = front_,
+                tmpBack = back_,
+                tmpSize = size_;
+
+        memory_ = rhs.memory_;
+        capacity_ = rhs.capacity_;
+        front_ = rhs.front_;
+        back_ = rhs.back_;
+        size_ = rhs.size_;
+
+        rhs.memory_ = tmpMem;
+        rhs.capacity_ = tmpCap;
+        rhs.front_ = tmpFront;
+        rhs.back_ = tmpBack;
+        rhs.size_ = tmpSize;
+    }
+
+    _Alloc get_allocator() { return allocator_; }
+
+    using allocator_type = _Alloc;
+    using value_type = T;
 
     const size_t &capacity() const { return capacity_; }
 
