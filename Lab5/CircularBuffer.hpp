@@ -8,7 +8,6 @@
 template<typename T, typename allocator_type = std::allocator<T> >
 class CircularBuffer {
     allocator_type allocator_ = allocator_type();
-    allocator_type get_allocator() { return allocator_; }
 
     T *memory;
 
@@ -66,6 +65,8 @@ public:
 
     CircularBuffer &operator=(const CircularBuffer &rhs) {
         if (this != &rhs) {
+            allocator_ = rhs.get_allocator();
+
             std::allocator_traits<allocator_type>::deallocate(allocator_, capacity_, memory);
 
             capacity_ = rhs.capacity_;
@@ -268,6 +269,8 @@ public:
 
         memory += front_;
     }
+
+    allocator_type get_allocator() { return allocator_; }
 
     const size_t &capacity() const { return capacity_; }
 
