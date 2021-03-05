@@ -51,9 +51,9 @@ namespace RNContainer {
 
         ~LinkedMap();
 
-        Element &operator[](Key &key);
+        Element &operator[](const Key &key);
 
-        const Element &operator[](Key &key) const;
+        const Element &operator[](const Key &key) const;
 
         struct Iterator {
             using iterator_category = std::forward_iterator_tag;

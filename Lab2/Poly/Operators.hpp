@@ -9,22 +9,14 @@
 
 template<typename T>
 bool Poly<T>::operator==(const Poly<T> &rhs) const {
-    for (int i = 0; i < coefficients.size(); i++) {
-        if (i < rhs.size()) {
-            if (coefficients[i] != rhs.coefficients[i]) {
-                return false;
-            }
-        } else {
-            if (coefficients[i] != 0) {
-                return false;
-            }
-        }
+    if (size() != rhs.size()) {
+        return false;
     }
-    if (coefficients.size() < rhs.size()) {
-        for (int i = coefficients.size(); i < rhs.size(); i++) {
-            if (rhs[i] != 0) {
-                return false;
-            }
+
+    for (size_t i = 0; i < size(); ++i) {
+        if (coefficients[i].first_ != rhs.coefficients[i].first_ ||
+            coefficients[i].second_ != rhs.coefficients[i].second_) {
+            return false;
         }
     }
 
@@ -49,8 +41,8 @@ template<typename T>
 Poly<T> Poly<T>::operator-() const {
     Poly buffer(*this);
 
-    for (int i = 0; i < size(); i++) {
-        buffer.coefficients[i] = -coefficients[i];
+    for (Node<T> &node : buffer.coefficients) {
+        node.second_ = -node.second_;
     }
 
     return buffer;
@@ -65,8 +57,8 @@ Poly<T> Poly<T>::operator-(Poly<T> &rhs) const {
 
 template<typename T>
 Poly<T> &Poly<T>::operator+=(Poly<T> &rhs) {
-    for (size_t i = 0; i < rhs.size(); i++) {
-        this->add(i, rhs[i]);
+    for (Node<T> &node : rhs.coefficients) {
+        this->add(node.first_, node.second_);
     }
 
     return *this;
@@ -74,8 +66,8 @@ Poly<T> &Poly<T>::operator+=(Poly<T> &rhs) {
 
 template<typename T>
 Poly<T> &Poly<T>::operator-=(Poly<T> &rhs) {
-    for (size_t i = 0; i < rhs.size(); i++) {
-        this->add(i, -rhs[i]);
+    for (Node<T> &node : rhs.coefficients) {
+        this->add(node.first_, -node.second_);
     }
 
     return *this;
@@ -84,6 +76,7 @@ Poly<T> &Poly<T>::operator-=(Poly<T> &rhs) {
 template<typename T>
 Poly<T> Poly<T>::operator*(Poly &rhs) const {
     Poly buffer(*this);
+
     buffer *= rhs;
 
     return buffer;
@@ -93,9 +86,7 @@ template<typename T>
 Poly<T> Poly<T>::operator*(T &rhs) const {
     Poly buffer(coefficients);
 
-    for (int i = 0; i < size(); i++) {
-        buffer.coefficients[i] *= rhs;
-    }
+    buffer *= rhs;
 
     return buffer;
 }
@@ -104,31 +95,35 @@ template<typename T>
 Poly<T> Poly<T>::operator/(T &rhs) const {
     Poly buffer(coefficients);
 
-    for (int i = 0; i < size(); i++) {
-        buffer.coefficients[i] /= rhs;
-    }
+    buffer /= rhs;
 
     return buffer;
 }
 
 template<typename T>
 Poly<T> &Poly<T>::operator*=(Poly &rhs) {
-    std::vector<T> buffer(size() + rhs.size() - 1);
+    std::vector<Node<T>> buffer;
+    for (size_t i = 0; i < size() + rhs.size() - 1; i ++) {
+        buffer.emplace_back(i, 0);
+    }
 
-    for (int i = size() - 1; i >= 0; i--) {
-        for (int j = rhs.size() - 1; j >= 0; j--) {
-            buffer[i + j] += coefficients[i] * coefficients[j];
+    for (long i = coefficients.size() - 1; i >= 0; --i) {
+        for (long j = rhs.coefficients.size() - 1; j >= 0; --j) {
+            buffer[coefficients[i].first_ + rhs.coefficients[j].first_].second_ +=
+                    coefficients[i].second_ * rhs.coefficients[j].second_;
         }
     }
 
     coefficients = buffer;
+    sizeToFit();
+
     return *this;
 }
 
 template<typename T>
 Poly<T> &Poly<T>::operator*=(T &rhs) {
-    for (int i = 0; i < size(); i++) {
-        coefficients[i] *= rhs;
+    for (Node<T> &node : coefficients) {
+        node.second_ *= rhs;
     }
 
     return *this;
@@ -136,21 +131,33 @@ Poly<T> &Poly<T>::operator*=(T &rhs) {
 
 template<typename T>
 Poly<T> &Poly<T>::operator/=(T &rhs) {
-    for (int i = 0; i < size(); i++) {
-        coefficients[i] /= rhs;
+    for (Node<T> &node : coefficients) {
+        node.second_ /= rhs;
     }
 
     return *this;
 }
 
 template<typename T>
-T Poly<T>::operator[](int i) const {
-    return coefficient(i);
+T Poly<T>::operator[](size_t index) const {
+    size_t i = get(index);
+
+    if (coefficients[i].first_ == index) {
+        return coefficients[i].second_;
+    }
+
+    return 0;
 }
 
 template<typename T>
-T &Poly<T>::operator[](int i) {
-    return coefficient(i);
+T &Poly<T>::operator[](size_t index) {
+    size_t i = get(index);
+
+    if (coefficients[i].first_ == index) {
+        return coefficients[i].second_;
+    }
+
+    return add(index, 0);
 }
 
 template<typename T>
@@ -164,24 +171,24 @@ std::istream &operator>>(std::istream &in, Poly<T> &p) {
 
 template<typename T>
 std::ostream &operator<<(std::ostream &out, const Poly<T> &p) {
-    for (int i = 0; i < p.size(); i++) {
-        if (p[i] < 0) {
-            if (i != 0) {
+    for (const Node<T> &node : p.coefficients) {
+        if (node.second_ < 0) {
+            if (node.first_ != 0) {
                 out << "- ";
             } else {
                 out << "-";
             }
         } else {
-            if (i != 0) {
+            if (node.first_ != 0) {
                 out << "+ ";
             }
         }
 
-        out << abs(p[i]);
-        if (i > 0) {
+        out << abs(node.second_);
+        if (node.first_ > 0) {
             out << 'x';
-            if (i > 1) {
-                out << '^' << i;
+            if (node.first_ > 1) {
+                out << '^' << node.first_;
             }
         }
 

@@ -9,6 +9,15 @@
 #include <iostream>
 
 template<typename T>
+struct Node {
+    size_t first_;
+    T second_;
+
+    Node(size_t first, size_t second) : first_(first), second_(second) {};
+    Node() : first_(0), second_(0) {};
+};
+
+template<typename T>
 class Poly;
 
 template<typename T>
@@ -19,18 +28,23 @@ std::ostream &operator<<(std::ostream &out, const Poly<T> &p);
 
 template<typename T>
 class Poly {
-    std::vector <T> coefficients;
+    std::vector<Node<T>> coefficients;
+
+    size_t get(size_t index) const;
 
 public:
     int size() const;
 
-    T coefficient(unsigned int number) const;
+    T coefficient(size_t index) const;
 
-    void add(int number, T value);
+    Node<T> &add(size_t index, T value);
 
     T substitute(T x) const;
 
-    Poly(std::vector <T> c);
+    void sizeToFit();
+
+    Poly(std::vector<T> c);
+    Poly(std::vector<Node<T>> c);
 
     Poly(const Poly &origin);
 
@@ -68,13 +82,17 @@ public:
 
     Poly &operator/=(T &rhs);
 
-    T operator[](int i) const;
+    T operator[](size_t index) const;
 
-    T& operator[](int i);
+    T &operator[](size_t index);
 
-    friend std::istream &operator>> <> (std::istream &in, Poly<T> &p);
+    friend std::istream &operator>><>(std::istream &in, Poly<T> &p);
 
-    friend std::ostream &operator<< <> (std::ostream &out, const Poly<T> &p);
+    friend std::ostream &operator
+    <<<>(
+    std::ostream &out,
+    const Poly<T> &p
+    );
 };
 
 

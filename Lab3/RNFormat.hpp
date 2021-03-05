@@ -84,7 +84,7 @@ namespace RNFormat {
         name = result;
     }
 
-    std::vector<std::string> getRoutesFromString(const std::string str) {
+    std::vector<std::string> getRoutesFromString(const std::string& str) {
         std::string buffer;
         std::vector<std::string> answer;
 

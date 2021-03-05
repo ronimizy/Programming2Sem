@@ -133,7 +133,7 @@ RNContainer::LinkedMap<Key, Element>::~LinkedMap() {
 
 //Subscript
 template<typename Key, typename Element>
-Element &RNContainer::LinkedMap<Key, Element>::operator[](Key &key) {
+Element &RNContainer::LinkedMap<Key, Element>::operator[](const Key &key) {
     Cell *element = get(key);
 
     if (!element) {
@@ -146,7 +146,7 @@ Element &RNContainer::LinkedMap<Key, Element>::operator[](Key &key) {
 
 //Const subscript
 template<typename Key, typename Element>
-const Element &RNContainer::LinkedMap<Key, Element>::operator[](Key &key) const {
+const Element &RNContainer::LinkedMap<Key, Element>::operator[](const Key &key) const {
     const Element &a = (*this)[key];
 
     return a;

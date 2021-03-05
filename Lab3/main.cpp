@@ -134,7 +134,9 @@ int main() {
     std::cout << "\n|–––––––––––––––––––––––––––––––|";
     std::cout << "\n\n\n\n";
 
-    std::cout << "Execution took " << (double )(clock() - start) / CLOCKS_PER_SEC << " sec";
+    std::cout << "Execution took " << (double )(clock() - start) / CLOCKS_PER_SEC << " sec\n";
+
+    std::cout << stops["Троллейбус"]["11"];
 
     return 0;
 }

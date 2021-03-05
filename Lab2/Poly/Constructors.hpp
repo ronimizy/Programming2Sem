@@ -8,7 +8,13 @@
 #include "../Poly.h"
 
 //Default constructor
-template<typename T> Poly<T>::Poly(std::vector <T> c) : coefficients(std::move(c)) {};
+template<typename T> Poly<T>::Poly(std::vector <T> c) {
+    for (size_t i = 0; i < c.size(); ++i) {
+        coefficients.emplace_back(i, c[i]);
+    }
+};
+
+template<typename T> Poly<T>::Poly(std::vector <Node<T>> c) : coefficients(std::move(c)) {};
 
 //Copy constructor
 template<typename T> Poly<T>::Poly(const Poly<T> &origin) : coefficients(origin.coefficients) {};
@@ -24,7 +30,7 @@ template<typename T> Poly<T>::Poly(size_t size)  : coefficients(std::vector<T>(s
 
 //Destructor
 template<typename T> Poly<T>::~Poly() {
-    coefficients.resize(0);
+//    coefficients.resize(0);
     std::cout << "Destructor's work have been done" << std::endl;
 }
 
