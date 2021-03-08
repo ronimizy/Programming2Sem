@@ -38,7 +38,7 @@ template<typename T, typename allocator_type>
 void CircularBuffer<T, allocator_type>::put_(T &value, bool atBack, bool copy) {
     if (capacity_) {
         if (size_ == capacity_) {
-            resize(capacity_ + 1);
+            resize(2 * capacity_);
         }
 
         if (atBack) {
@@ -57,7 +57,7 @@ void CircularBuffer<T, allocator_type>::put_(T &value, bool atBack, bool copy) {
                 memory_[front_] = value;
             }
 
-            increment(front_);
+            decrement(front_);
             size_++;
         }
     }
@@ -75,7 +75,7 @@ T& CircularBuffer<T, allocator_type>::get_(const size_t &index) const {
 
 //Pop
 template<typename T, typename allocator_type>
-T& CircularBuffer<T, allocator_type>::pop_(bool atBack) {
+T CircularBuffer<T, allocator_type>::pop_(bool atBack) {
     if (capacity_ && size_) {
         if (atBack) {
             decrement(back_);

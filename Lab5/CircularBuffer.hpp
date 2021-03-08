@@ -48,9 +48,8 @@ public:
     }
 
     //Copy insert constructor
-    CircularBuffer(const CircularBuffer &origin, _Alloc &alloc) : CircularBuffer(origin) {
-        allocator_ = alloc;
-    }
+    CircularBuffer(const CircularBuffer &origin, _Alloc &alloc) : CircularBuffer(origin),
+    allocator_(std::allocator_traits<_Alloc>::select_on_container_copy_construction(alloc)) {}
 
     //Move constructor
     CircularBuffer(CircularBuffer &&origin) noexcept: capacity_(origin.capacity_) {
@@ -59,9 +58,8 @@ public:
     }
 
     //Move insert constructor
-    CircularBuffer(CircularBuffer &&origin, _Alloc &&alloc) noexcept : CircularBuffer(origin) {
-        allocator_ = alloc;
-    }
+    CircularBuffer(CircularBuffer &&origin, const _Alloc &alloc) noexcept : CircularBuffer(origin),
+    allocator_(std::allocator_traits<_Alloc>::select_on_container_copy_construction(alloc)) {}
 
     CircularBuffer &operator=(const CircularBuffer &rhs) {
         if (this != &rhs) {
@@ -227,9 +225,9 @@ public:
 
     void push_front(T &value) { put_(value, false, false); }
 
-    T &pop_back() { return pop_(true); }
+    T pop_back() { return pop_(true); }
 
-    T &pop_front() { return pop_(false); }
+    T pop_front() { return pop_(false); }
 
     T &front() const { return memory_[front_]; }
 
@@ -270,7 +268,7 @@ public:
         memory_ += front_;
     }
 
-    void swap(CircularBuffer &rhs) {
+    void swap(CircularBuffer &rhs) noexcept {
         T* tmpMem = memory_;
         size_t  tmpCap = capacity_,
                 tmpFront = front_,
@@ -288,9 +286,13 @@ public:
         rhs.front_ = tmpFront;
         rhs.back_ = tmpBack;
         rhs.size_ = tmpSize;
+
+        if (std::allocator_traits<_Alloc>::propagate_on_container_swap) {
+            swap(allocator_, rhs.allocator_);
+        }
     }
 
-    _Alloc get_allocator() { return allocator_; }
+    _Alloc &get_allocator() { return allocator_; }
 
     using allocator_type = _Alloc;
     using value_type = T;
