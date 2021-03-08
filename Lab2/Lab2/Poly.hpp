@@ -9,7 +9,7 @@
 #include <map>
 #include <iostream>
 
-#include "Poly/ToString.cpp"
+#include "Poly/ToString.hpp"
 
 //MARK: - class Poly
 template<typename T>
@@ -136,7 +136,7 @@ public:
 };
 
 
-#include "Poly/Operators.cpp"
-#include "Poly/Methods.cpp"
+#include "Poly/Operators.hpp"
+#include "Poly/Methods.hpp"
 
 #endif //LAB2_POLY_H

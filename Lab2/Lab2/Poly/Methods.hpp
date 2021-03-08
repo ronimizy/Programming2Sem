@@ -5,7 +5,7 @@
 #ifndef POLY_METHODS_HPP
 #define POLY_METHODS_HPP
 
-#include "../Poly.cpp"
+#include "../Poly.hpp"
 
 template<typename T>
 size_t Poly<T>::size() const {

@@ -5,7 +5,7 @@
 #ifndef POLY_OPERATORS_HPP
 #define POLY_OPERATORS_HPP
 
-#include "../Poly.cpp"
+#include "../Poly.hpp"
 
 //MARK: Substitute
 template<typename T>

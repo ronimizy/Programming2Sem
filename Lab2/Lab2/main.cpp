@@ -1,7 +1,7 @@
 #include <iostream>
 #include <vector>
 
-#include "Poly.cpp"
+#include "Poly.hpp"
 
 
 int main() {
