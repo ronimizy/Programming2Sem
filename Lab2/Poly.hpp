@@ -6,7 +6,7 @@
 #define LAB2_POLY_H
 
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <iostream>
 
 #include "Poly/ToString.hpp"
@@ -25,7 +25,7 @@ std::ostream &operator<<(std::ostream &out, const Poly<T> &p);
 template<typename T>
 class Poly {
     //MARK: Values
-    std::map<size_t, T> coefficients_;
+    std::unordered_map<size_t, T> coefficients_;
     size_t size_ = 0;
 
 
@@ -37,8 +37,8 @@ public:
     //returns a number of deleted objects
     size_t sizeToFit();
     
-    typename std::map<size_t, T>::iterator begin() { return coefficients_.begin(); }
-    typename std::map<size_t, T>::iterator end() { return coefficients_.end(); }
+    typename std::unordered_map<size_t, T>::iterator begin() { return coefficients_.begin(); }
+    typename std::unordered_map<size_t, T>::iterator end() { return coefficients_.end(); }
 
     //MARK: Life cycle
     //Size constructor
@@ -69,7 +69,7 @@ public:
     }
 
     //Map constructor
-    Poly(std::map<size_t, T> coefficients)
+    Poly(std::unordered_map<size_t, T> coefficients)
         : coefficients_(coefficients) {
             for (auto &it : coefficients) {
                 if (it.first + 1 > size_) {
@@ -125,9 +125,9 @@ public:
     Poly &operator/=(T &rhs);
 
         //MARK: Subscript
-    std::pair<const size_t, T> operator[](size_t index) const;
+    T operator[](size_t index) const;
 
-    std::pair<const size_t, T> &operator[](size_t index);
+    T &operator[](size_t index);
 
         //MARK: IO
     friend std::istream &operator>> <>(std::istream &in, Poly<T> &p);

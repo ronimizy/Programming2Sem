@@ -7,7 +7,8 @@
 
 template<typename T, typename _Alloc = std::allocator<T> >
 class CircularBuffer {
-    _Alloc allocator_ = _Alloc();
+    _Alloc allocator_;
+    using traits_ = std::allocator_traits<_Alloc>;
 
     T *memory_;
 
@@ -16,6 +17,7 @@ class CircularBuffer {
 
     size_t front_ = 0;
     size_t back_ = 0;
+
 
     /** PrivateMethods.hpp **/
     void increment(size_t &i, long by = 1);
@@ -32,47 +34,58 @@ class CircularBuffer {
 
     T &pop_(bool atBack);
 
+
 public:
     /** Life cycle **/
-    CircularBuffer(size_t capacity = 0) : capacity_(capacity) {
-        memory_ = std::allocator_traits<_Alloc>::allocate(allocator_, capacity);
-    }
+    CircularBuffer(size_t capacity = 0, _Alloc allocator = _Alloc())
+            : capacity_(capacity),
+              allocator_(allocator),
+              memory_(traits_::allocate(allocator_, capacity)) {};
 
     //Copy constructor
-    CircularBuffer(const CircularBuffer &origin) : capacity_(origin.capacity_) {
-        memory_ = std::allocator_traits<_Alloc>::allocate(allocator_, origin.capacity_);
+    CircularBuffer(const CircularBuffer &origin)
+            : capacity_(origin.capacity),
+              back_(origin.size_) {
+        if (traits_::propagate_on_container_copy_assignment) {
+            allocator_ = traits_::select_on_container_copy_construction(origin.allocator);
+        } else {
+            allocator_ = _Alloc();
+        }
+
+        memory_ = traits_::allocate(allocator_, capacity_);
 
         for (auto &it : origin) {
             push_back(it);
         }
     }
 
-    //Copy insert constructor
-    CircularBuffer(const CircularBuffer &origin, _Alloc &alloc) : CircularBuffer(origin),
-    allocator_(std::allocator_traits<_Alloc>::select_on_container_copy_construction(alloc)) {}
-
     //Move constructor
-    CircularBuffer(CircularBuffer &&origin) noexcept: capacity_(origin.capacity_) {
-        memory_ = origin.memory_;
-        origin.memory_ = nullptr;
-    }
+    CircularBuffer(CircularBuffer &&origin) noexcept
+            : capacity_(origin.capacity),
+              back_(origin.size_) {
+        if (traits_::propagate_on_container_move_assignment) {
+            allocator_ = std::move(origin.allocator_);
+        } else {
+            allocator_ = _Alloc();
+        }
 
-    //Move insert constructor
-    CircularBuffer(CircularBuffer &&origin, const _Alloc &alloc) noexcept : CircularBuffer(origin),
-    allocator_(std::allocator_traits<_Alloc>::select_on_container_copy_construction(alloc)) {}
+        memory_ = traits_::allocate(allocator_, capacity_);
+    }
 
     CircularBuffer &operator=(const CircularBuffer &rhs) {
         if (this != &rhs) {
-            allocator_ = rhs.get_allocator();
+            clean();
 
-            std::allocator_traits<_Alloc>::deallocate(allocator_, capacity_, memory_);
+            if (traits_::propagate_on_container_copy_assignment) {
+                allocator_ = traits_::select_on_container_copy_construction(rhs.allocator_);
+            }
 
             capacity_ = rhs.capacity_;
             memory_ = std::allocator_traits<_Alloc>::allocate(allocator_, capacity_);
             front_ = 0;
             back_ = 0;
 
-            for (auto &it : rhs) {
+            for (auto &&it : rhs) {
                 push_back(it);
             }
         }
@@ -81,8 +94,9 @@ public:
     }
 
     ~CircularBuffer() {
-        std::allocator_traits<_Alloc>::deallocate(allocator_, capacity_, memory_);
+        clean();
     }
+
 
     /** Iterator.hpp **/
     struct iterator {
@@ -216,7 +230,25 @@ public:
         size_t index_;
     };
 
+
     /** Public methods **/
+    using allocator_type = _Alloc;
+    using value_type = T;
+
+    const size_t &capacity() const { return capacity_; }
+
+    const size_t &size() const { return size_; }
+
+    bool isEmpty() const { return size_ == 0; }
+
+    T &front() const { return memory_[front_]; }
+
+    T &back() const { return memory_[decremented(back_)]; }
+
+    iterator begin() { return iterator(*this, 0); }
+
+    iterator end() { return iterator(*this, size_); }
+
     void push_back(T &&value) { put_(value, true); }
 
     void push_back(T &value) { put_(value, true, false); }
@@ -229,13 +261,14 @@ public:
 
     T pop_front() { return pop_(false); }
 
-    T &front() const { return memory_[front_]; }
 
-    T &back() const { return memory_[decremented(back_)]; }
-
-    iterator begin() { return iterator(*this, 0); }
-
-    iterator end() { return iterator(*this, size_); }
+    /** Memory **/
+    void clean() {
+        for (size_t i = 0; i < size_; ++i) {
+            traits_::destroy(allocator_, memory_ + incremented(front_, i));
+        }
+        std::allocator_traits<_Alloc>::deallocate(allocator_, capacity_, memory_);
+    }
 
     void resize(size_t newSize) {
         if (capacity_ == newSize) { return; }
@@ -269,8 +302,8 @@ public:
     }
 
     void swap(CircularBuffer &rhs) noexcept {
-        T* tmpMem = memory_;
-        size_t  tmpCap = capacity_,
+        T *tmpMem = memory_;
+        size_t tmpCap = capacity_,
                 tmpFront = front_,
                 tmpBack = back_,
                 tmpSize = size_;
@@ -294,14 +327,6 @@ public:
 
     _Alloc &get_allocator() { return allocator_; }
 
-    using allocator_type = _Alloc;
-    using value_type = T;
-
-    const size_t &capacity() const { return capacity_; }
-
-    const size_t &size() const { return size_; }
-
-    bool isEmpty() const { return size_ == 0; }
 
     /** Operators **/
     T &operator[](const size_t &index) { return get_(index); }

@@ -11,25 +11,32 @@
 //Increment
 template<typename T, typename allocator_type>
 void CircularBuffer<T, allocator_type>::increment(size_t &i, long by) {
-    i = (i + by) % capacity_;
+    i += by;
+    i = (i < 0 ? capacity_ : 0) + (i % capacity_);
 }
 
 //Incremented
 template<typename T, typename allocator_type>
 size_t CircularBuffer<T, allocator_type>::incremented(const size_t &i, long by) const {
-    return (i + by) % capacity_;
+    size_t result = i;
+    increment(result, by);
+
+    return i;
 }
 
 //Decrement
 template<typename T, typename allocator_type>
 void CircularBuffer<T, allocator_type>::decrement(size_t &i, long by) {
-    i = (i - by + capacity_) % capacity_;
+    increment(i, -by);
 }
 
 //Decremented
 template<typename T, typename allocator_type>
 size_t CircularBuffer<T, allocator_type>::decremented(const size_t &i, long by) const {
-    return (i - by + capacity_) % capacity_;
+    size_t result = i;
+    decrement(result, by);
+
+    return result;
 }
 
 /** Data Arrangement **/
@@ -65,7 +72,7 @@ void CircularBuffer<T, allocator_type>::put_(T &value, bool atBack, bool copy) {
 
 //Get
 template<typename T, typename allocator_type>
-T& CircularBuffer<T, allocator_type>::get_(const size_t &index) const {
+T &CircularBuffer<T, allocator_type>::get_(const size_t &index) const {
     if (capacity_ && size_) {
         return memory_[incremented(front_, index)];
     } else {

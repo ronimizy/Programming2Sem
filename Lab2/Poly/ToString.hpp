@@ -8,17 +8,17 @@
 #include <sstream>
 
 template<typename T>
-std::string str(std::pair<const size_t, T> power) {
+std::string str(std::pair<const size_t, T> power, bool isFirst) {
     std::stringstream s;
     
     if (power.second < 0) {
-        if (power.first != 0) {
+        if (!isFirst) {
             s << "- ";
         } else {
             s << "-";
         }
     } else {
-        if (power.first != 0) {
+        if (!isFirst) {
             s << "+ ";
         }
     }

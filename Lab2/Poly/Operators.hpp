@@ -86,7 +86,7 @@ Poly<T> Poly<T>::operator+(Poly<T> &rhs) const {
 template<typename T>
 Poly<T> &Poly<T>::operator-=(Poly<T> &rhs) {
     for (auto &it : rhs.coefficients_) {
-        this->add(it.first_, -it.second_);
+        coefficients_
     }
     
     return *this;
@@ -102,7 +102,7 @@ Poly<T> Poly<T>::operator-(Poly<T> &rhs) const {
 //MARK: Multiplying
 template<typename T>
 Poly<T> &Poly<T>::operator*=(Poly &rhs) {
-    std::map<size_t, T> buffer {};
+    std::unordered_map<size_t, T> buffer {};
     
     for (auto &left : coefficients_) {
         for (auto &right : rhs.coefficients_) {
@@ -163,21 +163,17 @@ Poly<T> Poly<T>::operator/(T &rhs) const {
 
 //MARK: - Subscript
 template<typename T>
-std::pair<const size_t, T> Poly<T>::operator[](size_t index) const {
+T Poly<T>::operator[](size_t index) const {
     if (coefficients_.count(index)) {
-        return coefficients_.at(index);
+        return coefficients_[index];
     } else {
-        return std::pair<const size_t, T> {index, 0};
+        return 0;
     }
 }
 
 template<typename T>
-std::pair<const size_t, T> &Poly<T>::operator[](size_t index) {
-    if (!coefficients_.count(index)) {
-        coefficients_[index];
-    }
-    
-    return coefficients_.at(index);
+T &Poly<T>::operator[](size_t index) {
+    return coefficients_[index];
 }
 
 //MARK: - IO
@@ -192,8 +188,13 @@ std::istream &operator>>(std::istream &in, Poly<T> &p) {
 
 template<typename T>
 std::ostream &operator<<(std::ostream &out, Poly<T> &p) {
-    for (const std::pair<const size_t, T> &it : p) {
-        out << str(it) << ' ';
+    bool sthIsOut = false;
+    
+    for (size_t i = 0; i < p.size(); ++i) {
+        if (p[i] != 0) {
+            out << str(std::pair<const size_t, T>{i, p[i]}, !sthIsOut) << ' ';
+            sthIsOut = true;
+        }
     }
     
     return out;
