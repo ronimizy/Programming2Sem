@@ -37,8 +37,8 @@ bool Poly<T>::operator==(const Poly<T> &rhs) const {
     }
     
     for (size_t i = 0; i < size(); ++i) {
-        if (coefficients_[i].first_ != rhs.coefficients_[i].first_ ||
-            coefficients_[i].second_ != rhs.coefficients_[i].second_) {
+        if (coefficients_.contains(i) != rhs.coefficients_.contains(i)
+            || coefficients_[i] != rhs.coefficients_[i]) {
             return false;
         }
     }
@@ -57,7 +57,7 @@ Poly<T> Poly<T>::operator-() const {
     Poly buffer(*this);
     
     for (auto &it : buffer.coefficients_) {
-        it.second_ = -it.second_;
+        it = -it;
     }
     
     return buffer;
@@ -66,8 +66,8 @@ Poly<T> Poly<T>::operator-() const {
 //MARK: Sum
 template<typename T>
 Poly<T> &Poly<T>::operator+=(Poly<T> &rhs) {
-    for (auto &it : rhs.coefficients_) {
-        this->add(it.first_, it.second_);
+    for (const auto &[key, value] : rhs.coefficients_) {
+        coefficients_[key] += value;
     }
     
     return *this;
@@ -85,8 +85,8 @@ Poly<T> Poly<T>::operator+(Poly<T> &rhs) const {
 //MARK: Subtraction
 template<typename T>
 Poly<T> &Poly<T>::operator-=(Poly<T> &rhs) {
-    for (auto &it : rhs.coefficients_) {
-        coefficients_
+    for (const auto &[key, value] : rhs.coefficients_) {
+        coefficients_[key] -= value;
     }
     
     return *this;
@@ -102,24 +102,16 @@ Poly<T> Poly<T>::operator-(Poly<T> &rhs) const {
 //MARK: Multiplying
 template<typename T>
 Poly<T> &Poly<T>::operator*=(Poly &rhs) {
-    std::unordered_map<size_t, T> buffer {};
-    
-    for (auto &left : coefficients_) {
-        for (auto &right : rhs.coefficients_) {
-            buffer[left.first + right.first] += left.second * right.second;
-        }
-    }
-    
-    coefficients_ = buffer;
-    size_ += rhs.size_ - 1;
-    sizeToFit();
+    Poly p = *this * rhs;
+    coefficients_ = p.coefficients_;
+    size_ = p.size_;
     
     return *this;
 }
 template<typename T>
 Poly<T> &Poly<T>::operator*=(T &rhs) {
-    for (auto &node : coefficients_) {
-        node.second_ *= rhs;
+    for (const auto &[key, _] : coefficients_) {
+        coefficients_[key] *= rhs;
     }
     
     return *this;
@@ -127,11 +119,18 @@ Poly<T> &Poly<T>::operator*=(T &rhs) {
 
 template<typename T>
 Poly<T> Poly<T>::operator*(Poly &rhs) const {
-    Poly buffer(*this);
-    
-    buffer *= rhs;
-    
-    return buffer;
+    mapType map;
+
+    for (const auto &[fKey, fValue] : coefficients_) {
+        for (const auto &[sKey, sValue] : rhs.coefficients_) {
+            map[fKey + sKey] += fValue * sValue;
+        }
+    }
+
+    Poly p{map};
+    p.sizeToFit();
+
+    return p;
 }
 template<typename T>
 Poly<T> Poly<T>::operator*(T &rhs) const {
@@ -145,8 +144,8 @@ Poly<T> Poly<T>::operator*(T &rhs) const {
     //MARK: Dividing
 template<typename T>
 Poly<T> &Poly<T>::operator/=(T &rhs) {
-    for (auto &node : coefficients_) {
-        node.second_ /= rhs;
+    for (const auto &[key, _] : coefficients_) {
+        coefficients_[key] /= rhs;
     }
     
     return *this;
@@ -164,7 +163,7 @@ Poly<T> Poly<T>::operator/(T &rhs) const {
 //MARK: - Subscript
 template<typename T>
 T Poly<T>::operator[](size_t index) const {
-    if (coefficients_.count(index)) {
+    if (coefficients_.contains(index)) {
         return coefficients_[index];
     } else {
         return 0;
@@ -191,8 +190,8 @@ std::ostream &operator<<(std::ostream &out, Poly<T> &p) {
     bool sthIsOut = false;
     
     for (size_t i = 0; i < p.size(); ++i) {
-        if (p[i] != 0) {
-            out << str(std::pair<const size_t, T>{i, p[i]}, !sthIsOut) << ' ';
+        if (p.contains(i)) {
+            out << str(std::pair<const size_t, T> {i, p[i]}, !sthIsOut) << ' ';
             sthIsOut = true;
         }
     }

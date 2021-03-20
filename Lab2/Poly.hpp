@@ -24,6 +24,8 @@ std::ostream &operator<<(std::ostream &out, const Poly<T> &p);
 
 template<typename T>
 class Poly {
+    using mapType = std::unordered_map<size_t, T>;
+
     //MARK: Values
     std::unordered_map<size_t, T> coefficients_;
     size_t size_ = 0;
@@ -36,9 +38,12 @@ public:
     //
     //returns a number of deleted objects
     size_t sizeToFit();
+
+    //
+    bool contains(size_t i) { return coefficients_.contains(i); }
     
-    typename std::unordered_map<size_t, T>::iterator begin() { return coefficients_.begin(); }
-    typename std::unordered_map<size_t, T>::iterator end() { return coefficients_.end(); }
+    typename mapType ::iterator begin() { return coefficients_.begin(); }
+    typename mapType ::iterator end() { return coefficients_.end(); }
 
     //MARK: Life cycle
     //Size constructor
