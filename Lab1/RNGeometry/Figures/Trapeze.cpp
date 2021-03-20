@@ -7,7 +7,7 @@
 //Default constructor
 RNGeometry::Figures::Trapeze::Trapeze(const std::vector <RNGeometry::Point> &points) : RNGeometry::Figures::ConvexPolygon(points) {
     if (this->points.size() != 4 || !isTrapeze()) {
-        this->points.resize(0);
+        throw std::invalid_argument("Given figure is not a Trapeze");
     }
 }
 

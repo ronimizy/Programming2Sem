@@ -16,47 +16,60 @@ int main() {
                                                                          RNGeometry::Point(1, 0),
                                                                          RNGeometry::Point(1, 1),
                                                                          RNGeometry::Point(0, 1)});
-    RNGeometry::Figures::ConvexPolygon np(std::vector<RNGeometry::Point>{RNGeometry::Point(),
-                                                                         RNGeometry::Point(1, 0),
-                                                                         RNGeometry::Point(0.5, 0.5),
-                                                                         RNGeometry::Point(1, 1),
-                                                                         RNGeometry::Point(0, 1)});
+    try {
+        RNGeometry::Figures::ConvexPolygon np(std::vector<RNGeometry::Point>{RNGeometry::Point(),
+                                                                             RNGeometry::Point(1, 0),
+                                                                             RNGeometry::Point(0.5, 0.5),
+                                                                             RNGeometry::Point(1, 1),
+                                                                             RNGeometry::Point(0, 1)});
+    } catch (std::exception &e) {
+        std::cerr << e.what() << '\n';
+    }
 
     std::cout << cp.area() << ' ' << cp.perimeter() << '\n'; // 1
-    std::cout << np.area() << '\n'; // 0
 
     RNGeometry::Figures::Triangle cT(std::vector<RNGeometry::Point>{RNGeometry::Point(0, 1),
                                                                     RNGeometry::Point(),
                                                                     RNGeometry::Point(1, 0)});
-    RNGeometry::Figures::Triangle nT(std::vector<RNGeometry::Point>{RNGeometry::Point(0, 1),
-                                                                    RNGeometry::Point()});
+    try {
+        RNGeometry::Figures::Triangle nT(std::vector<RNGeometry::Point>{RNGeometry::Point(0, 1),
+                                                                        RNGeometry::Point()});
+    } catch (std::exception &e) {
+        std::cerr << e.what() << '\n';
+    }
+
 
     std::cout << cT.area() << ' ' << cT.perimeter() << '\n'; //0.5 3.41....
-    std::cout << nT.area() << ' ' << nT.perimeter() << '\n'; // 0 0
 
     RNGeometry::Figures::Trapeze cTr(std::vector<RNGeometry::Point>{RNGeometry::Point(0, 1),
                                                                     RNGeometry::Point(-1, 0),
                                                                     RNGeometry::Point(2, 0),
                                                                     RNGeometry::Point(1, 1)});
-    RNGeometry::Figures::Trapeze nTr(std::vector<RNGeometry::Point>{RNGeometry::Point(0, 1),
-                                                                    RNGeometry::Point(),
-                                                                    RNGeometry::Point(1, 0),
-                                                                    RNGeometry::Point(1, 2)});
+    try {
+        RNGeometry::Figures::Trapeze nTr(std::vector<RNGeometry::Point>{RNGeometry::Point(0, 1),
+                                                                        RNGeometry::Point(),
+                                                                        RNGeometry::Point(1, 0),
+                                                                        RNGeometry::Point(1, 2)});
+    } catch (std::exception &e) {
+        std::cerr << e.what() << '\n';
+    }
 
     std::cout << cTr.area() << ' ' << cTr.perimeter() << '\n'; //2 6.82...
-    std::cout << nTr.area() << ' ' << nTr.perimeter() << '\n'; // 0 0
 
     RNGeometry::Figures::AppropriatePolygon cAp(std::vector<RNGeometry::Point>{RNGeometry::Point(),
                                                                                RNGeometry::Point(0, 1),
                                                                                RNGeometry::Point(1, 1),
                                                                                RNGeometry::Point(1, 0)});
-    RNGeometry::Figures::AppropriatePolygon nAp(std::vector<RNGeometry::Point>{RNGeometry::Point(),
-                                                                               RNGeometry::Point(0, 1),
-                                                                               RNGeometry::Point(1, 1),
-                                                                               RNGeometry::Point(0.9, 0)});
+    try {
+        RNGeometry::Figures::AppropriatePolygon nAp(std::vector<RNGeometry::Point>{RNGeometry::Point(),
+                                                                                   RNGeometry::Point(0, 1),
+                                                                                   RNGeometry::Point(1, 1),
+                                                                                   RNGeometry::Point(0.9, 0)});
+    } catch (std::exception &e) {
+        std::cerr << e.what() << '\n';
+    }
 
     std::cout << cAp.area() << ' ' << cAp.perimeter() << '\n'; //2 6.82...
-    std::cout << nAp.area() << ' ' << nAp.perimeter() << '\n'; // 0 0
 
     RNGeometry::Figures::Figure* arr[] = { &cp, &cT, &cTr, &cAp };
     std::cout << '\n';

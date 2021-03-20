@@ -12,7 +12,7 @@ RNGeometry::Lines::PolygonalLine::PolygonalLine(std::vector <RNGeometry::Point> 
         : points(std::move(points)) {};
 
 //Move constructor
-RNGeometry::Lines::PolygonalLine::PolygonalLine(RNGeometry::Lines::PolygonalLine &&origin)
+RNGeometry::Lines::PolygonalLine::PolygonalLine(RNGeometry::Lines::PolygonalLine &&origin) noexcept
         : points(std::move(origin.points)) {};
 
 //Copy constructor
@@ -61,12 +61,4 @@ RNGeometry::Lines::PolygonalLine RNGeometry::Lines::PolygonalLine::operator+(con
     PolygonalLine p(*this);
 
     return p += point;
-}
-
-std::ostream &operator<<(std::ostream &out, RNGeometry::Lines::PolygonalLine &line) {
-    for (auto &point : line) {
-        out << point << '\n';
-    }
-
-    return out;
 }

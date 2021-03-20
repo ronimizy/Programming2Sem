@@ -8,6 +8,11 @@
 #include <iostream>
 #include <vector>
 
+struct Point;
+
+std::istream &operator>>(std::istream &in, Point &point);
+std::ostream &operator<<(std::ostream &out, const Point &point);
+
 namespace RNGeometry {
     struct Point {
         double x, y;
@@ -64,15 +69,13 @@ namespace RNGeometry {
             PolygonalLine &operator+=(const RNGeometry::Point &point);
 
             PolygonalLine operator+(const RNGeometry::Point &point);
-
-            friend std::ostream &operator<<(std::ostream &out, PolygonalLine &line);
         };
 
         class ClosedPolygonalLine : public PolygonalLine {
         public:
             ClosedPolygonalLine(const std::vector <RNGeometry::Point> &points);
 
-            ClosedPolygonalLine(ClosedPolygonalLine &&origin);
+            ClosedPolygonalLine(ClosedPolygonalLine &&origin) noexcept;
 
             ClosedPolygonalLine(const ClosedPolygonalLine &origin);
 

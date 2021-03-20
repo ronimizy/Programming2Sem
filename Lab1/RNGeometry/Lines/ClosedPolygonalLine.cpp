@@ -5,11 +5,11 @@
 #include "../../RNGeometry.h"
 
 //Default constructor
-RNGeometry::Lines::ClosedPolygonalLine::ClosedPolygonalLine(const std::vector <RNGeometry::Point> &points)
+RNGeometry::Lines::ClosedPolygonalLine::ClosedPolygonalLine(const std::vector<RNGeometry::Point> &points)
         : PolygonalLine(points) {};
 
 //Move constructor
-RNGeometry::Lines::ClosedPolygonalLine::ClosedPolygonalLine(RNGeometry::Lines::ClosedPolygonalLine &&origin)
+RNGeometry::Lines::ClosedPolygonalLine::ClosedPolygonalLine(RNGeometry::Lines::ClosedPolygonalLine &&origin) noexcept
         : PolygonalLine(std::move(origin.points)) {};
 
 //Copy constructor

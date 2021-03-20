@@ -7,7 +7,7 @@
 //Default constructor
 RNGeometry::Figures::ConvexPolygon::ConvexPolygon(const std::vector <Point> &points) : Figure(points) {
     if (!isConvex()) {
-        this->points.resize(0);
+        throw std::invalid_argument("Given figure is not a Convex Polygon");
     }
 }
 

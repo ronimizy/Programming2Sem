@@ -3,10 +3,8 @@
 
 int main() {
 
-    CircularBuffer<int> intBuffer(10);
-    CircularBuffer<int> b(0);
-
-
+    CircularBuffer<int> intBuffer;
+    CircularBuffer<int> b;
 
     for (int i = 0; i < 20; ++i) {
         intBuffer.push_back(i);
@@ -25,7 +23,6 @@ int main() {
     std::cout << "\n\t";
 
     intBuffer.resize(0);
-    intBuffer.resize(40);
     for (int i = 0; i < 40; ++i) {
         intBuffer.push_back(i);
     }

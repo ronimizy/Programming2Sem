@@ -7,7 +7,7 @@
 //Default constructor
 RNGeometry::Figures::Triangle::Triangle(const std::vector <Point> &points) : ConvexPolygon(points) {
     if (points.size() != 3) {
-        this->points.resize(0);
+        throw std::invalid_argument("Given figure is not a Triangle");
     }
 }
 
