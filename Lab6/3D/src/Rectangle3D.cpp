@@ -5,10 +5,12 @@
 #include "../Rectangle3D.h"
 
 //Constructor
-Rectangle3D::Rectangle3D(const Scene3D &scene, sf::Color color, float width, float height, sf::Vector3f center)
-        : Object3D(center, scene) {
+Rectangle3D::Rectangle3D(sf::Color color, float width, float height, sf::Vector3f center)
+        : Object3D(center) {
     shape.setPointCount(4);
     shape.setFillColor(color);
+
+    points_.resize(4);
 
     points_[0] = {center.x - width * 0.5f,
                   center.y - height * 0.5f,
@@ -23,27 +25,11 @@ Rectangle3D::Rectangle3D(const Scene3D &scene, sf::Color color, float width, flo
     points_[3] = {center.x - width * 0.5f,
                   center.y + height * 0.5f,
                   center.z};
-
-    updatePoints(points_);
 }
-
-void Rectangle3D::updatePoints(sf::Vector3f points[4]) {
-    for (size_t i = 0; i < 4; ++i) {
-        shape.setPoint(i, scene_.camera_.render(points[i]));
-    }
-}
-
 
 void
-Rectangle3D::rotate(sf::Vector3f radians) {
-    rotation_ = {fmod(rotation_.x + radians.x, 2 * (float) M_PI),
-                 fmod(rotation_.y + radians.y, 2 * (float) M_PI),
-                 fmod(rotation_.z + radians.z, 2 * (float) M_PI)};
-
-    sf::Vector3f points[4];
-    for (size_t i = 0; i < 4; ++i) {
-        points[i] = points_[i];
-    }
+Rectangle3D::render(const std::function<sf::Vector2f(sf::Vector3f)> &closure) {
+    Verticies points(points_);
 
     for (auto &point : points) {
         point -= center_;
@@ -63,7 +49,16 @@ Rectangle3D::rotate(sf::Vector3f radians) {
         point += center_;
     }
 
-    updatePoints(points);
+    for (size_t i = 0; i < 4; ++i) {
+        shape.setPoint(i, closure(points[i]));
+    }
+}
+
+void
+Rectangle3D::rotate(sf::Vector3f radians) {
+    rotation_ = {fmod(rotation_.x + radians.x, 2 * (float) M_PI),
+                 fmod(rotation_.y + radians.y, 2 * (float) M_PI),
+                 fmod(rotation_.z + radians.z, 2 * (float) M_PI)};
 }
 
 void

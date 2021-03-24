@@ -6,8 +6,12 @@
 #define LAB6_OBJECT3D_H
 
 #include <compare>
+#include <functional>
+#include <vector>
 
-#include "Scene3D.h"
+#include <SFML/Graphics.hpp>
+
+using Verticies = std::vector<sf::Vector3f >;
 
 class Object3D : public sf::Drawable,
                  public sf::Transformable {
@@ -15,12 +19,11 @@ protected:
     float zIndex;
     sf::Vector3f center_;
     sf::Vector3f rotation_ = {0, 0, 0};
-    const Scene3D &scene_;
 
 public:
     explicit
-    Object3D(sf::Vector3f center, const Scene3D &scene)
-            : zIndex(center.z), center_(center), scene_(scene) {};
+    Object3D(sf::Vector3f center)
+            : zIndex(center.z), center_(center) {};
 
 
     constexpr auto
@@ -34,6 +37,9 @@ public:
 
     virtual void
     move(sf::Vector3f by) = 0;
+
+    virtual void
+    render(const std::function<sf::Vector2f(sf::Vector3f)> &closure) = 0;
 };
 
 

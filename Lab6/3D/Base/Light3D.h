@@ -15,8 +15,6 @@ class Light3D {
 public:
     Light3D(sf::Vector3f position, sf::Vector3f direction)
             : position_(position), direction_(direction) {};
-
-
 };
 
 
