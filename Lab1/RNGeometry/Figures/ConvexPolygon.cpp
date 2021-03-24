@@ -5,6 +5,13 @@
 #include "../../RNGeometry.h"
 
 //Default constructor
+RNGeometry::Figures::ConvexPolygon::ConvexPolygon(const std::initializer_list <Point> &points) : Figure(points) {
+    if (!isConvex()) {
+        throw std::invalid_argument("Given figure is not a Convex Polygon");
+    }
+}
+
+//Vector constructor
 RNGeometry::Figures::ConvexPolygon::ConvexPolygon(const std::vector <Point> &points) : Figure(points) {
     if (!isConvex()) {
         throw std::invalid_argument("Given figure is not a Convex Polygon");
@@ -21,7 +28,7 @@ RNGeometry::Figures::ConvexPolygon::ConvexPolygon(RNGeometry::Figures::ConvexPol
 
 //Copy constructor
 RNGeometry::Figures::ConvexPolygon::ConvexPolygon(const ConvexPolygon &origin)
-        : Figure(origin.points) {};
+        : Figure(origin.points) {}
 
 //Destructor
 RNGeometry::Figures::ConvexPolygon::~ConvexPolygon() {

@@ -8,7 +8,11 @@
 
 
 //Default constructor
-RNGeometry::Lines::PolygonalLine::PolygonalLine(std::vector <RNGeometry::Point> points)
+RNGeometry::Lines::PolygonalLine::PolygonalLine(std::initializer_list<RNGeometry::Point> points)
+        : points(points) {};
+
+//Vector constructor
+RNGeometry::Lines::PolygonalLine::PolygonalLine(std::vector<RNGeometry::Point> points)
         : points(std::move(points)) {};
 
 //Move constructor

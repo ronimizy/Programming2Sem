@@ -48,7 +48,9 @@ namespace RNGeometry {
             std::vector <RNGeometry::Point> points;
 
         public:
-            PolygonalLine(std::vector <RNGeometry::Point> points);
+            PolygonalLine(std::initializer_list<RNGeometry::Point> points);
+
+            PolygonalLine(std::vector<RNGeometry::Point> points);
 
             PolygonalLine(PolygonalLine &&origin) noexcept;
 
@@ -73,7 +75,9 @@ namespace RNGeometry {
 
         class ClosedPolygonalLine : public PolygonalLine {
         public:
-            ClosedPolygonalLine(const std::vector <RNGeometry::Point> &points);
+            ClosedPolygonalLine(const std::initializer_list <RNGeometry::Point> &points);
+
+            ClosedPolygonalLine(std::vector <RNGeometry::Point> points);
 
             ClosedPolygonalLine(ClosedPolygonalLine &&origin) noexcept;
 
@@ -110,6 +114,8 @@ namespace RNGeometry {
             bool isConvex();
 
         public:
+            ConvexPolygon(const std::initializer_list <Point> &points);
+
             ConvexPolygon(const std::vector <Point> &points);
 
             ConvexPolygon(ConvexPolygon &&origin) noexcept;
@@ -123,6 +129,8 @@ namespace RNGeometry {
 
         class Triangle : public ConvexPolygon {
         public:
+            Triangle(const std::initializer_list <Point> &points);
+
             Triangle(const std::vector <Point> &points);
 
             Triangle(Triangle &&origin) noexcept;
@@ -136,6 +144,8 @@ namespace RNGeometry {
             bool isTrapeze();
 
         public:
+            Trapeze(const std::initializer_list <Point> &points);
+
             Trapeze(const std::vector <Point> &points);
 
             Trapeze(Trapeze &&origin) noexcept;
@@ -149,6 +159,8 @@ namespace RNGeometry {
             bool isAppropriate();
 
         public:
+            AppropriatePolygon(const std::initializer_list <Point> &points);
+
             AppropriatePolygon(const std::vector <Point> &points);
 
             AppropriatePolygon(AppropriatePolygon &&origin) noexcept;

@@ -5,6 +5,13 @@
 #include "../../RNGeometry.h"
 
 //Default constructor
+RNGeometry::Figures::Trapeze::Trapeze(const std::initializer_list <RNGeometry::Point> &points) : RNGeometry::Figures::ConvexPolygon(points) {
+    if (this->points.size() != 4 || !isTrapeze()) {
+        throw std::invalid_argument("Given figure is not a Trapeze");
+    }
+}
+
+//Vector constructor
 RNGeometry::Figures::Trapeze::Trapeze(const std::vector <RNGeometry::Point> &points) : RNGeometry::Figures::ConvexPolygon(points) {
     if (this->points.size() != 4 || !isTrapeze()) {
         throw std::invalid_argument("Given figure is not a Trapeze");

@@ -5,6 +5,13 @@
 #include "../../RNGeometry.h"
 
 //Default constructor
+RNGeometry::Figures::Triangle::Triangle(const std::initializer_list <Point> &points) : ConvexPolygon(points) {
+    if (points.size() != 3) {
+        throw std::invalid_argument("Given figure is not a Triangle");
+    }
+}
+
+//Vector constructor
 RNGeometry::Figures::Triangle::Triangle(const std::vector <Point> &points) : ConvexPolygon(points) {
     if (points.size() != 3) {
         throw std::invalid_argument("Given figure is not a Triangle");

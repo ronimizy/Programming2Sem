@@ -5,6 +5,13 @@
 #include "../../RNGeometry.h"
 
 //Default constructor
+RNGeometry::Figures::AppropriatePolygon::AppropriatePolygon(const std::initializer_list <Point> &points) : ConvexPolygon(points) {
+    if (this->points.size() <= 2 || !isAppropriate()) {
+        throw std::invalid_argument("Given figure is not a Appropriate Polygon");
+    }
+}
+
+//Default constructor
 RNGeometry::Figures::AppropriatePolygon::AppropriatePolygon(const std::vector <Point> &points) : ConvexPolygon(points) {
     if (this->points.size() <= 2 || !isAppropriate()) {
         throw std::invalid_argument("Given figure is not a Appropriate Polygon");
