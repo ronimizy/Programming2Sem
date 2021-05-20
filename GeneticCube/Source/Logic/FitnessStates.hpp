@@ -2,8 +2,8 @@
 // Created by Георгий Круглов on 12.05.2021.
 //
 
-#ifndef GENETICCUBE_FITNESSSTATES_H
-#define GENETICCUBE_FITNESSSTATES_H
+#ifndef GENETICCUBE_FITNESSSTATES_HPP
+#define GENETICCUBE_FITNESSSTATES_HPP
 
 enum FitnessStates {
     Random = 0,
@@ -17,4 +17,4 @@ enum FitnessStates {
     Solved = 1000
 };
 
-#endif //GENETICCUBE_FITNESSSTATES_H
+#endif //GENETICCUBE_FITNESSSTATES_HPP

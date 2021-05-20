@@ -2,8 +2,8 @@
 // Created by Георгий Круглов on 11.05.2021.
 //
 
-#ifndef GENETICCUBE_COLOR_H
-#define GENETICCUBE_COLOR_H
+#ifndef GENETICCUBE_COLOR_HPP
+#define GENETICCUBE_COLOR_HPP
 
 #include <iostream>
 
@@ -19,7 +19,7 @@ namespace Logic {
         inline friend bool operator!=(const Color &lhs, const Color &rhs) { return lhs.value != rhs.value; }
 
         inline operator int() const { return value; }
-        
+
         operator char() const {
             char v;
             switch (value) {
@@ -48,8 +48,10 @@ namespace Logic {
             return v;
         }
 
-        inline friend std::ostream &operator<<(std::ostream &out, const Logic::Color &color) { return out << (char) color; }
+        inline friend std::ostream &operator<<(std::ostream &out, const Logic::Color &color) {
+            return out << (char) color;
+        }
     };
 }
 
-#endif //GENETICCUBE_COLOR_H
+#endif //GENETICCUBE_COLOR_HPP

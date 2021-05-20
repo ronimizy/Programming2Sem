@@ -3,8 +3,8 @@
 //
 
 
-#ifndef GENETICCUBE_MOVES_H
-#define GENETICCUBE_MOVES_H
+#ifndef GENETICCUBE_MOVES_HPP
+#define GENETICCUBE_MOVES_HPP
 
 #include <random>
 #include <vector>
@@ -41,5 +41,5 @@ std::string movesToString(const std::vector<Moves> &moves);
 
 std::vector<Moves> movesFromString(const std::string &string);
 
-#endif //GENETICCUBE_MOVES_H
+#endif //GENETICCUBE_MOVES_HPP
 

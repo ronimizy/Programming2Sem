@@ -2,16 +2,16 @@
 // Created by Георгий Круглов on 11.05.2021.
 //
 
-#ifndef GENETICCUBE_CUBE_H
-#define GENETICCUBE_CUBE_H
+#ifndef GENETICCUBE_CUBE_HPP
+#define GENETICCUBE_CUBE_HPP
 
 #include <iostream>
 #include <vector>
 #include <compare>
 
-#include "Moves.h"
-#include "Color.h"
-#include "FitnessStates.h"
+#include "Moves.hpp"
+#include "Color.hpp"
+#include "FitnessStates.hpp"
 
 namespace Logic {
     class Cube {
@@ -110,6 +110,9 @@ namespace Logic {
 
         inline void ClearHistory() { history.clear(); }
 
+        inline void EraseMoveAt(size_t i) { history.erase(history.begin() + i); }
+        inline void InsertMoveAt(size_t i, Moves move) { history.insert(history.begin() + i, move); }
+
         std::string ToString() const;
 
         Cube WithCleanHistory() const {
@@ -127,9 +130,27 @@ namespace Logic {
         inline friend std::weak_ordering operator<=>(const Cube &lhs, const Cube &rhs) {
             return lhs.fitness_ <=> rhs.fitness_;
         }
+
+        struct FitnessSortGreater {
+            bool operator()(const Cube &lhs, const Cube &rhs) {
+                return lhs.fitness_ > rhs.fitness_;
+            }
+        };
+
+        struct HistorySortLess {
+            bool operator()(const Cube &lhs, const Cube &rhs) {
+                return lhs.History().size() < rhs.History().size();
+            }
+        };
+
+        struct NotSolved {
+            bool operator()(const Cube &cube) {
+                return cube.fitness_ != FitnessStates::Solved;
+            }
+        };
     };
 }
 
 std::ostream &operator<<(std::ostream &out, const Logic::Cube &cube);
 
-#endif //GENETICCUBE_CUBE_H
+#endif //GENETICCUBE_CUBE_HPP

@@ -2,8 +2,8 @@
 // Created by Георгий Круглов on 14.05.2021.
 //
 
-#ifndef GENETICCUBE_CUBEINDICESDATA_H
-#define GENETICCUBE_CUBEINDICESDATA_H
+#ifndef GENETICCUBE_CUBEINDICESDATA_HPP
+#define GENETICCUBE_CUBEINDICESDATA_HPP
 
 namespace Logic::CubeIndicesData {
     namespace Rotation {
@@ -306,4 +306,4 @@ namespace Logic::CubeIndicesData {
     }
 };
 
-#endif //GENETICCUBE_CUBEINDICESDATA_H
+#endif //GENETICCUBE_CUBEINDICESDATA_HPP

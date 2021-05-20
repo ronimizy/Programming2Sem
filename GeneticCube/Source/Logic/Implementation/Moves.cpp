@@ -2,7 +2,7 @@
 // Created by Георгий Круглов on 12.05.2021.
 //
 
-#include "../Moves.h"
+#include "../Moves.hpp"
 #include <sstream>
 
 Moves randomMove() {

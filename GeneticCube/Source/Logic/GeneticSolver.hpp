@@ -2,10 +2,10 @@
 // Created by Георгий Круглов on 12.05.2021.
 //
 
-#ifndef GENETICCUBE_GENETICSOLVER_H
-#define GENETICCUBE_GENETICSOLVER_H
+#ifndef GENETICCUBE_GENETICSOLVER_HPP
+#define GENETICCUBE_GENETICSOLVER_HPP
 
-#include "Cube.h"
+#include "Cube.hpp"
 
 #include <vector>
 #include <iostream>
@@ -57,28 +57,51 @@ namespace Logic {
                 {F2, S2, B2}
         };
 
-        const Cube source;
-        const Cube scrambled;
-        std::basic_ostream<char> &out;
+        bool solutionFound = false;
 
-        void initPopulation(std::vector<Cube> &);
+        Cube source;
+        Cube scrambled;
 
-        void mutate(int eliteSize, std::vector<Cube> &population);
+        bool verbose_;
+        std::basic_ostream<char> &out_;
 
-        void printCubes(const int &from, const int &upTo, const std::vector<Cube> &population) const;
+        unsigned int populationSize_;
+        unsigned int eliteSize_;
+        unsigned int maxGenerationsCount_;
+        unsigned int maxResetCount_;
+        unsigned int threadCount_;
+        OptimizationType optimizationType_;
 
-        std::pair<Cube, Cube>
-        solve(int populationSize, int eliteSize, int maxGenerationsCount, int maxResetCount);
+        std::mutex logMutex;
+
+        void initPopulation(std::vector<Cube> &) const;
+
+        void mutate(Cube &cube, std::vector<Cube> &population, std::mt19937 &generator) const;
+        void
+        mutateMultiThread(Cube &cube, std::vector<Cube> &population, std::mt19937 &generator, std::mutex &mutex) const;
+
+        void logTopPerformers(const unsigned int &generationsCount, const std::vector<Cube> &population) const;
+
+        void logSolutions(const unsigned int &solutionsCount, const std::vector<Cube> &population) const;
+
+        void logProgressMultiThread(const std::vector<Cube> &population);
+
+        void printCubes(unsigned int upTo, const std::vector<Cube> &population) const;
+
+        Cube optimize(const Cube &) const;
+
+        Cube solve();
 
     public:
-        GeneticSolver(const Cube &, std::basic_ostream<char> &out = std::cout);
+        GeneticSolver(unsigned int populationSize, unsigned int eliteSize, unsigned int maxGenerationsCount,
+                      unsigned int maxResetCount, unsigned int threadLimit = 1,
+                      OptimizationType optimizationType = SpeedOptimized,
+                      bool verbose = false, std::basic_ostream<char> &out = std::cout);
 
         //Первый куб - разобранный, хранит последовательность разборки, второй собранный, хранит последовательность для сборки первого,
         // если решение не найдено, второй куб - первый, без истории комманд
-        std::pair<Cube, Cube>
-        Solve(int populationSize, int eliteSize, int maxGenerationsCount, int maxResetCount,
-              int maxThreadCount = -1, OptimizationType optimizationType = SpeedOptimized);
+        Cube Solve(const Cube &);
     };
 }
 
-#endif //GENETICCUBE_GENETICSOLVER_H
+#endif //GENETICCUBE_GENETICSOLVER_HPP

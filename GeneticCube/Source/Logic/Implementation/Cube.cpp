@@ -2,8 +2,8 @@
 // Created by Георгий Круглов on 11.05.2021.
 //
 
-#include "../Cube.h"
-#include "../CubeIndicesData.h"
+#include "../Cube.hpp"
+#include "../CubeIndicesData.hpp"
 
 #include <algorithm>
 #include <queue>
@@ -68,6 +68,7 @@ Cube &Cube::operator=(const Cube rhs) {
             }
 
         history = rhs.history;
+        fitness_ = rhs.fitness_;
     }
 
     return *this;
