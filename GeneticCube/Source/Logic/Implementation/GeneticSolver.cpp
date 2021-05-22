@@ -149,10 +149,6 @@ Cube GeneticSolver::Solve(const Cube &cube) {
         for (const Moves &move : solution.History())
             out_ << moveToString(move) << ' ';
         out_ << '\n';
-
-        if (Cube(source).PerformMoves(solution.History()).Fitness() != Solved) {
-            out_ << "WARNING!!! OPTIMIZED SOLUTION APPEARS TO BE WRONG!!!\n";
-        }
     }
 
     return solution;
@@ -248,7 +244,7 @@ struct GeneticSolver::SolutionCycle {
     std::vector<Moves> sequence;
     std::vector<Moves> adjustment;
 
-    std::pair<unsigned int, unsigned int> coordinates = {-1, -1};
+    std::pair<int, int> coordinates = {-1, -1};
 
     SolutionCycle() = default;
 
@@ -270,53 +266,54 @@ struct GeneticSolver::SolutionCycle {
 };
 
 Cube GeneticSolver::optimize(const Cube &solution) {
-    Cube cube(solution);
+    Cube phaseOneCube(solution);
 
-    for (int i = 0; i < cube.History().size() - 1; ++i) {
-        Moves current = cube.History()[i], next = cube.History()[i + 1];
+    for (int i = 0; i < phaseOneCube.History().size() - 1; ++i) {
+        Moves current = phaseOneCube.History()[i], next = phaseOneCube.History()[i + 1];
 
         if (current % 10 == next % 10) {
             if (current / 10 == 0 && next / 10 == 1 ||
                 current / 10 == 1 && next / 10 == 0 ||
                 current / 10 == 2 && next / 10 == 2) {
-                cube.EraseMoveAt(i);
-                cube.EraseMoveAt(i);
+                phaseOneCube.EraseMoveAt(i);
+                phaseOneCube.EraseMoveAt(i);
             } else if (current == next && current / 10 != 2) {
-                cube.EraseMoveAt(i);
-                cube.EraseMoveAt(i);
-                cube.InsertMoveAt(i, Moves(20 + current % 10));
+                phaseOneCube.EraseMoveAt(i);
+                phaseOneCube.EraseMoveAt(i);
+                phaseOneCube.InsertMoveAt(i, Moves(20 + current % 10));
             } else if (current / 10 == 0 && next / 10 == 2 ||
                        current / 10 == 2 && next / 10 == 0) {
-                cube.EraseMoveAt(i);
-                cube.EraseMoveAt(i);
-                cube.InsertMoveAt(i, Moves(10 + current % 10));
+                phaseOneCube.EraseMoveAt(i);
+                phaseOneCube.EraseMoveAt(i);
+                phaseOneCube.InsertMoveAt(i, Moves(10 + current % 10));
             } else if (current / 10 == 1 && next / 10 == 2 ||
                        current / 10 == 2 && next / 10 == 1) {
-                cube.EraseMoveAt(i);
-                cube.EraseMoveAt(i);
-                cube.InsertMoveAt(i, Moves(current % 10));
+                phaseOneCube.EraseMoveAt(i);
+                phaseOneCube.EraseMoveAt(i);
+                phaseOneCube.InsertMoveAt(i, Moves(current % 10));
             }
         }
     }
 
-    out_ << "After removing mutually compensating moves found solution requires " << cube.History().size() << " moves\n";
+    out_ << "After removing mutually compensating moves found solution requires " << phaseOneCube.History().size() << " moves\n";
 
+    Cube phaseTwoCube(phaseOneCube);
     Cube state(source);
     std::vector<SolutionCycle> cycles;
     std::mutex mutex;
     std::condition_variable cv;
     unsigned int done = 0;
 
-    for (int moveLeadToStateIndex = -1; moveLeadToStateIndex < (int) cube.History().size() - 1; ++moveLeadToStateIndex) {
+    for (int moveLeadToStateIndex = -1; moveLeadToStateIndex < (int) phaseTwoCube.History().size() - 1; ++moveLeadToStateIndex) {
         if (moveLeadToStateIndex != -1)
-            state.PerformMove(cube.History()[moveLeadToStateIndex]);
+            state.PerformMove(phaseTwoCube.History()[moveLeadToStateIndex]);
 
         threadPool.enqueue([&, moveLeadToStateIndex, state]() -> void {
             Cube modifiedState(state.WithCleanHistory());
             SolutionCycle cycle;
 
-            for (int j = moveLeadToStateIndex + 1; j < cube.History().size(); ++j) {
-                modifiedState.PerformMove(cube.History()[j]);
+            for (int j = moveLeadToStateIndex + 1; j < phaseTwoCube.History().size(); ++j) {
+                modifiedState.PerformMove(phaseTwoCube.History()[j]);
                 if (state == modifiedState) {
                     cycle.sequence = modifiedState.History();
                     cycle.adjustment = {};
@@ -366,10 +363,10 @@ Cube GeneticSolver::optimize(const Cube &solution) {
     }
 
     std::unique_lock<std::mutex> lock(mutex);
-    cv.wait(lock, [&] { return done == cube.History().size(); });
+    cv.wait(lock, [&] { return done == phaseTwoCube.History().size(); });
 
     if (cycles.empty())
-        return cube;
+        return phaseOneCube;
 
     std::sort(cycles.begin(), cycles.end(), [](const SolutionCycle &lhs, const SolutionCycle &rhs) {
         return lhs.eliminating() > rhs.eliminating();
@@ -378,7 +375,9 @@ Cube GeneticSolver::optimize(const Cube &solution) {
     for (int i = 0; i < cycles.size() - 1; ++i) {
         for (int j = i + 1; j < cycles.size(); ++j) {
             if (cycles[i].coordinates.first < cycles[j].coordinates.first &&
-                cycles[j].coordinates.first < cycles[i].coordinates.second) {
+                cycles[j].coordinates.first < cycles[i].coordinates.second ||
+                cycles[i].coordinates.first < cycles[j].coordinates.second &&
+                cycles[j].coordinates.second < cycles[i].coordinates.second) {
                 cycles.erase(cycles.begin() + j);
                 --j;
             }
@@ -399,12 +398,23 @@ Cube GeneticSolver::optimize(const Cube &solution) {
     int offset = 0;
     for (const SolutionCycle &cycle : cycles) {
         for (unsigned int _ = cycle.coordinates.first; _ <= cycle.coordinates.second; ++_)
-            cube.EraseMoveAt(cycle.coordinates.first - offset);
+            phaseTwoCube.EraseMoveAt(cycle.coordinates.first - offset);
         for (const Moves &move : cycle.adjustment)
-            cube.InsertMoveAt(cycle.coordinates.first - offset, move);
+            phaseTwoCube.InsertMoveAt(cycle.coordinates.first - offset, move);
 
         offset += cycle.eliminating();
     }
 
-    return cube;
+    if (phaseTwoCube.Fitness() != Solved) {
+        out_ << "WARNING!!! OPTIMIZED SOLUTION APPEARS TO BE WRONG!!! (Less optimized correct solution was provided)\n";
+        out_ << "Removed cycles:\n";
+        for (const SolutionCycle &cycle : cycles) {
+            out_ << cycle.coordinates.first << ' ' << cycle.coordinates.second << "\n\t" << movesToString(cycle.sequence)
+                 << "\n\t" << movesToString(cycle.adjustment) << '\n';
+        }
+
+        throw std::invalid_argument("");
+    }
+
+    return phaseTwoCube;
 }

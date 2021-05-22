@@ -16,13 +16,15 @@ namespace Logic {
 
         constexpr static const char fileName[] = "GENETIC_CUBE.slns";
         static const int stateCount = 8;
-        static const int maxCount = 10000;
+        static const int maxCount = 5000;
 
     public:
         SuccessfulSequences() : tensor(stateCount) {
             std::fstream file(fileName, std::ios::in);
 
             if (file.is_open()) {
+                std::clog << "Loading successful sequences\n";
+
                 for (int i = 0; i < stateCount; ++i) {
                     int sequencesCount;
                     file >> sequencesCount;
@@ -41,10 +43,14 @@ namespace Logic {
                 }
 
                 file.close();
+
+                std::clog << "Successful sequences loaded\n";
             }
         }
 
         ~SuccessfulSequences() {
+            std::clog << "Saving successful sequences\n";
+
             for (auto state : tensor) {
                 std::sort(state.begin(), state.end(), [](const std::vector<Moves> &lhs, const std::vector<Moves> &rhs) {
                     return lhs.size() < rhs.size();

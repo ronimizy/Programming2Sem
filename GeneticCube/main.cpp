@@ -3,18 +3,24 @@
 #include "Source/Logic/GeneticSolver.hpp"
 #include "Source/Visualization/RubikApplication.hpp"
 
-URHO3D_DEFINE_APPLICATION_MAIN(Visualization::RubikApplication)
+//URHO3D_DEFINE_APPLICATION_MAIN(Visualization::RubikApplication)
 
 //
-//int main() {
-//    Logic::Cube cube;
-//    cube.PerformMoves({L, M, RR, L, M, RR, L, M, RR, L, M, RR});
-//
-//    Logic::GeneticSolver solver(1000, 20, 200, 10,
-//                                1, Logic::SpeedOptimized, false);
-//
-//    std::cout << "--\n" << movesToString(solver.optimize(cube).History()).size();
-//}
+int main() {
+    Logic::GeneticSolver solver(1000, 20, 200, 10,
+                                std::thread::hardware_concurrency() - 2, Logic::SpeedOptimized, false);
+    int i;
+    try {
+        for (i = 0; i < 50; ++i) {
+            Logic::Cube cube(true);
+            solver.Solve(cube);
+        }
+    } catch (std::exception &e) {
+        std::cerr << i;
+    }
+
+    return 0;
+}
 
 //int main() {
 //    std::cout << movesToString(Logic::Cube(true).History());
