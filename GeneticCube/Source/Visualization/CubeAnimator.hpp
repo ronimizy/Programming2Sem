@@ -11,6 +11,7 @@
 
 #include <queue>
 #include <thread>
+#include <future>
 
 
 namespace Visualization {
@@ -25,9 +26,12 @@ namespace Visualization {
         const int FPS;
         bool animating_ = false;
 
+        bool solving_ = false;
+        bool solved_ = false;
+        Logic::Cube solution;
+
         RotationConfiguration &configuration;
 
-        float duration_;
         float degreesLeft_;
 
         inline float step() {
@@ -43,7 +47,7 @@ namespace Visualization {
         CubeAnimator(Cube *cube, int fps)
                 : visualCube(cube), FPS(fps), configuration(cube->Configuration()),
                   solver(Logic::GeneticSolver(1000, 20, 200, 10,
-                                              std::thread::hardware_concurrency() - 2, Logic::SpeedOptimized)) {};
+                                              std::thread::hardware_concurrency() - 1, Logic::SpeedOptimized, false)) {};
 
         void RenderFrame();
 

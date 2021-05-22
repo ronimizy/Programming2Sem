@@ -6,7 +6,8 @@ set(CMAKE_CXX_STANDARD 20)
 set (URHO3D_HOME ${CMAKE_SOURCE_DIR}/Urho3D)
 set (CMAKE_MODULE_PATH ${URHO3D_HOME}/CMake/Modules)
 set (URHO3D_LIBRARIES ${URHO3D_HOME}/lib/Urho3D/Urho3D.a)
-set (URHO3D_PREFIX_PATH /Users/george/Documents/Programming2Sem/GeneticCube/Urho3D/bin/Data/)
+
+add_definitions(-DURHO_PREFIX="${URHO3D_HOME}/bin/")
 
 include (UrhoCommon)
 

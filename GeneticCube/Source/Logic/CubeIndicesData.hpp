@@ -5,19 +5,21 @@
 #ifndef GENETICCUBE_CUBEINDICESDATA_HPP
 #define GENETICCUBE_CUBEINDICESDATA_HPP
 
+#include <vector>
+
 namespace Logic::CubeIndicesData {
     namespace Rotation {
         //Индексы сторон после поворота: subFaceletsRotation[_][i] - сторона на i-той позиции
-        static const int faceletRotation[3][9] = {
+        static const std::vector<std::vector<int>> faceletRotation = {
                 {6, 3, 0, 7, 4, 1, 8, 5, 2},
                 {2, 5, 8, 1, 4, 7, 0, 3, 6},
                 {8, 7, 6, 5, 4, 3, 2, 1, 0}
         };
 
         //Грани с которых начинается поворот смежных сторон
-        static const int begins[9] = {5, 5, 5, 4, 1, 3, 1, 1, 5};
+        static const std::vector<int> begins = {5, 5, 5, 4, 1, 3, 1, 1, 5};
         //Грани в порядке обхода для перемещения при вращении
-        static const int subFaces[9][2][4] = {
+        static const std::vector<std::vector<std::vector<int>>> subFaces = {
                 {
                         {1, 4, 3, 5},
                         {3, 4, 1, 5}
@@ -56,7 +58,7 @@ namespace Logic::CubeIndicesData {
                 }
         };
         //Индексы соответствующих квадратов при вращении
-        static const int subFaceletsRotation[9][6][3] = {
+        static const std::vector<std::vector<std::vector<int>>> subFaceletsRotation = {
                 {
                         {},
                         {0, 1, 2},
@@ -133,7 +135,7 @@ namespace Logic::CubeIndicesData {
     }
 
     namespace Fitness {
-        static const int barsBases[6][6] = {
+        static const std::vector<std::vector<int>> barsBases = {
                 {-1, 1,  -1, 1,  1,  1},
                 {7,  -1, 1,  -1, 5,  3},
                 {-1, 7,  -1, 7,  7,  7},
@@ -142,7 +144,7 @@ namespace Logic::CubeIndicesData {
                 {5,  5,  5,  3,  -1, -1}
         };
 
-        static const int pyramidBases[6][6][2] = {
+        static const std::vector<std::vector<std::vector<int>>> pyramidBases = {
                 {
                         {},
                         {0, 2},
@@ -193,7 +195,7 @@ namespace Logic::CubeIndicesData {
                 }
         };
 
-        static const int bagEars[6][6][2] = {
+        static const std::vector<std::vector<std::vector<int>>> bagEars = {
                 {
                         {},
                         {3, 5},
@@ -244,7 +246,7 @@ namespace Logic::CubeIndicesData {
                 }
         };
 
-        static const int sidesTops[6][6] = {
+        static const std::vector<std::vector<int>> sidesTops = {
                 {-1, 7,  -1, 7,  7,  7},
                 {1,  -1, 7,  -1, 3,  5},
                 {-1, 1,  -1, 1,  1,  1},
@@ -253,7 +255,7 @@ namespace Logic::CubeIndicesData {
                 {3,  3,  3,  5,  -1, -1}
         };
 
-        static const int topCrossEars[6][6][4] = {
+        static const std::vector<std::vector<std::vector<int>>> topCrossEars = {
                 {
                         {},
                         {6, 8},

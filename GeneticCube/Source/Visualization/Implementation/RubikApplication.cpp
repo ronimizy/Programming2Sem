@@ -18,7 +18,7 @@ void RubikApplication::Setup() {
 
     engineParameters_[Urho3D::EP_WINDOW_WIDTH] = 1280;
     engineParameters_[Urho3D::EP_WINDOW_HEIGHT] = 720;
-    engineParameters_[Urho3D::EP_RESOURCE_PREFIX_PATHS] = "/Users/george/Documents/Programming2Sem/GeneticCube/Urho3D/bin/";
+    engineParameters_[Urho3D::EP_RESOURCE_PREFIX_PATHS] = URHO_PREFIX;
 
     engine_->SetMaxFps(60);
 }
@@ -30,6 +30,8 @@ void RubikApplication::Start() {
     scene_ = new Urho3D::Scene(context_);
     scene_->CreateComponent<Urho3D::Octree>();
     scene_->CreateComponent<Urho3D::DebugRenderer>();
+
+    /** Models **/
 
     Urho3D::Node *skyNode = scene_->CreateChild("Sky");
     skyNode->SetScale(500.0f);
@@ -45,10 +47,43 @@ void RubikApplication::Start() {
 
     cameraNode_->SetPosition(animator_->Center());
     cameraNode_->Translate({0, 0, 10});
-    cameraNode_->RotateAround(animator_->Center(), {-15, {0, 1, 0}}, Urho3D::TS_WORLD);
-    cameraNode_->RotateAround(animator_->Center(), {-20, {1, 0, 0}}, Urho3D::TS_WORLD);
+    cameraNode_->RotateAround(animator_->Center(), {135, {0, 1, 0}}, Urho3D::TS_WORLD);
+    cameraNode_->RotateAround(animator_->Center(), {30, {1, 0, 0}}, Urho3D::TS_WORLD);
 
     defaultCameraDirection = (cameraNode_->GetPosition() - animator_->Center()).Normalized();
+
+    /** UI **/
+    auto *randomizeButton = new Urho3D::Button(context_);
+    GetSubsystem<Urho3D::UI>()->GetRoot()->AddChild(randomizeButton);
+    randomizeButton->SetName("RandomizeButton");
+    randomizeButton->SetStyle("Button");
+    randomizeButton->SetSize(200, 100);
+    randomizeButton->SetPosition(70, 60);
+    SubscribeToEvent(randomizeButton, Urho3D::E_RELEASED, URHO3D_HANDLER(RubikApplication, HandleRandomize));
+
+    auto *randomizeText = new Urho3D::Text(context_);
+    randomizeButton->AddChild(randomizeText);
+    randomizeText->SetName("RandomizeText");
+    randomizeText->SetText("RANDOMIZE");
+    randomizeText->SetFont(cache->GetResource<Urho3D::Font>("Fonts/ALSSchlangesans-Bold.ttf"), 25);
+    randomizeText->SetColor({1, 1, 1});
+    randomizeText->SetAlignment(Urho3D::HA_CENTER, Urho3D::VA_CENTER);
+
+    auto *solveButton = new Urho3D::Button(context_);
+    GetSubsystem<Urho3D::UI>()->GetRoot()->AddChild(solveButton);
+    solveButton->SetName("RandomizeButton");
+    solveButton->SetStyle("Button");
+    solveButton->SetSize(200, 100);
+    solveButton->SetPosition(70, 170);
+    SubscribeToEvent(solveButton, Urho3D::E_RELEASED, URHO3D_HANDLER(RubikApplication, HandleSolve));
+
+    auto *solveText = new Urho3D::Text(context_);
+    solveButton->AddChild(solveText);
+    solveText->SetName("RandomizeText");
+    solveText->SetText("SOLVE");
+    solveText->SetFont(cache->GetResource<Urho3D::Font>("Fonts/ALSSchlangesans-Bold.ttf"), 25);
+    solveText->SetColor({1, 1, 1});
+    solveText->SetAlignment(Urho3D::HA_CENTER, Urho3D::VA_CENTER);
 
     {
         Urho3D::Node *lightNode = scene_->CreateChild();
@@ -92,16 +127,6 @@ void RubikApplication::HandleKeyDown(Urho3D::StringHash eventType, Urho3D::Varia
     auto *input = GetSubsystem<Input>();
     bool shift = input->GetKeyDown(Urho3D::KEY_SHIFT);
 
-    static std::vector<Moves> moves = {U, UR, U2, U2,
-                                       F, FR, F2, F2,
-                                       D, DR, D2, D2,
-                                       B, BR, B2, B2,
-                                       L, LR, L2, L2,
-                                       R, RR, R2, R2,
-                                       M, MR, M2, M2,
-                                       E, ER, E2, E2,
-                                       S, SR, S2, S2};
-
     switch (key) {
         case KEY_TAB:
             input->SetMouseVisible(!GetSubsystem<Input>()->IsMouseVisible());
@@ -143,21 +168,8 @@ void RubikApplication::HandleKeyDown(Urho3D::StringHash eventType, Urho3D::Varia
 
         case KEY_F:
             cameraNode_->SetPosition(
+                    animator_->Center() +
                     defaultCameraDirection * (animator_->Center() - cameraNode_->GetPosition()).Length());
-            break;
-
-        case KEY_H:
-            animator_->AddMoves(movesFromString(
-                    "D R2 E D S2 U' B' U D' D' E' R' L' B2 M R' S2 D B' D2 B F2 R' L' E F' U' S' B2 R S F' U2 U' D' D M2 U L' S F2 U E2 D E' E2 D' R2 L' R L2 L L2 U2 D2 U2 R2 E2 E L2 U2 E2 M2 M' M' F2 S' M2 U2 B2 R2 B F U' F' M U' M' F2 B R' R2 F2 R B D2 B' B' F2 R2 F2 E' E L2 L' B2 E B' S' U2 E2 L R2 S2 F E' F L2 S' B F2 D2 L2 F L2 R2 M' U' E2 R2 D R2 E D S2 U' B' U D' D' E' R' L' B2 M R' S2 D B' D2 B F2 R' L' E F' U' S' B2 R S F' U2 U' D' D M2 U L' S F2 U E2 D E' E2 D' R2 L' R L2 L L2 U2 D2 U2 R2 E2 E L2 U2 E2 M2 M' M' F2 S' M2 U2 B2 R2 B F U' F' M U' M' F2 B R' R2 F2 R B D2 B' B' F2 R2 F2 E' E L2 L' B2 E B' S' U2 E2 L R2 S2 F E' F L2 S' B F2 D2 L2 F L2 R2 M' U' E2 R2"));
-            break;
-
-        case KEY_U:
-            animator_->AddMove(moves.front());
-            moves.erase(moves.begin());
-            break;
-
-        case KEY_Y:
-            animator_->Solve();
             break;
 
         case '/':
@@ -189,7 +201,7 @@ void RubikApplication::HandleUpdate(Urho3D::StringHash eventType, Urho3D::Varian
 
         if (pitch_ != 0 && scroll == 0) {
             Urho3D::Quaternion pitchRotation = {pitch_, {1, 0, 0}};
-            cameraNode_->RotateAround(animator_->Center(), pitchRotation, Urho3D::TS_WORLD);
+            cameraNode_->RotateAround(animator_->Center(), -pitchRotation, Urho3D::TS_WORLD);
         }
 
         if (scroll != 0) {
@@ -204,4 +216,13 @@ void RubikApplication::HandleUpdate(Urho3D::StringHash eventType, Urho3D::Varian
 
         cameraNode_->LookAt(animator_->Center());
     }
+}
+
+void RubikApplication::HandleRandomize(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
+    Logic::Cube c(true);
+    animator_->AddMoves(c.History());
+}
+
+void RubikApplication::HandleSolve(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
+    animator_->Solve();
 }

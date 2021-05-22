@@ -61,6 +61,10 @@ namespace Visualization {
         inline void
         HandleBeginFrame(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) { animator_->RenderFrame(); }
 
+        void HandleRandomize(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
+
+        void HandleSolve(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
+
         ~RubikApplication() {
             delete animator_;
         }

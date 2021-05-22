@@ -7,16 +7,23 @@
 using namespace Visualization;
 
 void CubeAnimator::RenderFrame() {
+    if (solved_ && solving_) {
+        solving_ = false;
+        AddMoves(solution.History());
+    } else if (solving_)
+        return;
+
     if (animating_) {
         degreesLeft_ -= step();
         if (degreesLeft_ == 0) {
             animating_ = false;
             visualCube->Rotate(step(), true);
             logicCube.PerformMove(configuration.ToMove());
-//            std::cout << logicCube;
-//            std::cout << "direction: " << configuration.direction << '\n'
-//                      << "position: " << configuration.position << '\n'
-//                      << "move: " << configuration.ToMove() << '\n';
+
+            if (rotationQueue.empty() && solved_) {
+                logicCube.ClearHistory();
+                solved_ = false;
+            }
         } else
             visualCube->Rotate(step(), false);
     } else if (!rotationQueue.empty()) {
@@ -32,18 +39,10 @@ void CubeAnimator::Solve() {
     while (!rotationQueue.empty())
         rotationQueue.pop();
 
-    if (animating_)
+    if (animating_ || solving_)
         return;
 
-    std::vector<Moves> sequence;
-    Logic::Cube solution;
-    std::thread th([&] {
-        solution = solver.Solve(logicCube);
-    });
-
-    th.join();
-
-    AddMoves(solution.History());
+    solver.SolveAsync(logicCube, solution, solving_, solved_);
 }
 
 void CubeAnimator::setCurrentRotation(const RotationConfiguration &conf) {
@@ -61,6 +60,9 @@ void CubeAnimator::addConfiguration(const RotationConfiguration &conf) {
 }
 
 void CubeAnimator::AddRotation(RotationConfiguration::Direction direction) {
+    if (solving_ || solved_)
+        return;
+
     RotationConfiguration newConf(configuration);
     newConf.direction = direction;
 
@@ -95,10 +97,16 @@ bool CubeAnimator::TryFlipDimension() {
 }
 
 void CubeAnimator::AddMove(Moves move) {
+    if (solving_)
+        return;
+
     addConfiguration(move);
 }
 
 void CubeAnimator::AddMoves(const std::vector<Moves> &moves) {
+    if (solving_)
+        return;
+
     for (const Moves &move : moves)
         addConfiguration(move);
 }

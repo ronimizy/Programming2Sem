@@ -42,7 +42,7 @@ namespace Logic {
          *          5 4 3
          *          2 1 0
          */
-        Color unwrap[6][9] = {
+        std::vector<std::vector<Color>> unwrap = {
                 {0, 0, 0, 0, 0, 0, 0, 0, 0},
                 {1, 1, 1, 1, 1, 1, 1, 1, 1},
                 {2, 2, 2, 2, 2, 2, 2, 2, 2},
@@ -59,7 +59,7 @@ namespace Logic {
         int fitness_ = FitnessStates::Solved;
 
         //Вспомогательная функция для логического вращения сторон прилежащих граней
-        void rotateAdj(const std::vector<int> &, const int[6][3], int);
+        void rotateAdj(const std::vector<int> &, const std::vector<std::vector<int>> &, int);
 
         //Расчёт собранности кубика
         int countFitness() const;
@@ -93,6 +93,10 @@ namespace Logic {
                 Randomize();
         }
 
+        Cube(const Cube &);
+
+        Cube (Cube &&) noexcept;
+
         void PerformMove(Moves);
 
         void PerformMoves(const std::vector<Moves> &moves) {
@@ -121,15 +125,15 @@ namespace Logic {
             return cube;
         }
 
-        inline Color *operator[](int i) { return unwrap[i]; }
+        inline std::vector<Color> operator[](int i) { return unwrap.at(i); }
 
-        inline const Color *operator[](int i) const { return unwrap[i]; }
+        inline const std::vector<Color> operator[](int i) const { return unwrap.at(i); }
 
         Cube &operator=(const Cube);
 
-        inline friend std::weak_ordering operator<=>(const Cube &lhs, const Cube &rhs) {
-            return lhs.fitness_ <=> rhs.fitness_;
-        }
+        bool operator==(const Cube &) const;
+
+        bool operator!=(const Cube &rhs) const { return !(*this == rhs); }
 
         struct FitnessSortGreater {
             bool operator()(const Cube &lhs, const Cube &rhs) {

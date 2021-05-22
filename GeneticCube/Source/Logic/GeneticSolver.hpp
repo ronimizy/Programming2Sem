@@ -6,9 +6,12 @@
 #define GENETICCUBE_GENETICSOLVER_HPP
 
 #include "Cube.hpp"
+#include "../Utility/ThreadPool.hpp"
 
 #include <vector>
 #include <iostream>
+#include <thread>
+#include <future>
 
 namespace Logic {
     enum OptimizationType {
@@ -17,7 +20,9 @@ namespace Logic {
     };
 
     class GeneticSolver {
-        const std::vector<std::vector<Moves>> permutations{
+        struct SolutionCycle;
+
+        const std::vector<std::vector<Moves>> permutations {
                 {FR, LR, BR, RR, UR, R,  UR, B,  L,  F,  R,  U,  RR, U},
                 {F,  R,  B,  L,  U,  LR, U,  BR, RR, FR, LR, UR, L,  UR},
                 {U2, B,  U2, BR, R2, F,  RR, FR, U2, FR, U2, F,  RR},
@@ -33,7 +38,7 @@ namespace Logic {
                 {LR, U2, L,  RR, F2, R},
                 {RR, U2, R,  LR, B2, L}
         };
-        const std::vector<std::vector<Moves>> fullRotations{
+        const std::vector<std::vector<Moves>> fullRotations {
                 //Поворот вокруг оси x по часовой стрелке
                 {LR, MR, R},
                 //Поворот вокруг оси x против часовой стрелке
@@ -48,7 +53,7 @@ namespace Logic {
                 //Поворот вокруг оси y на 180 градусов
                 {U2, E2, D2}
         };
-        const std::vector<std::vector<Moves>> orientations{
+        const std::vector<std::vector<Moves>> orientations {
                 //Поворот вокруг оси z по часовой стрелке
                 {F,  S,  BR},
                 //Поворот вокруг оси z против часовой стрелки
@@ -73,34 +78,33 @@ namespace Logic {
         OptimizationType optimizationType_;
 
         std::mutex logMutex;
+        Utility::ThreadPool threadPool;
 
         void initPopulation(std::vector<Cube> &) const;
 
         void mutate(Cube &cube, std::vector<Cube> &population, std::mt19937 &generator) const;
-        void
-        mutateMultiThread(Cube &cube, std::vector<Cube> &population, std::mt19937 &generator, std::mutex &mutex) const;
 
         void logTopPerformers(const unsigned int &generationsCount, const std::vector<Cube> &population) const;
 
         void logSolutions(const unsigned int &solutionsCount, const std::vector<Cube> &population) const;
 
-        void logProgressMultiThread(const std::vector<Cube> &population);
+        void logProgressMultiThread(const Cube &population, unsigned int generationNumber);
 
         void printCubes(unsigned int upTo, const std::vector<Cube> &population) const;
 
-        Cube optimize(const Cube &) const;
+        Cube optimize(const Cube &);
 
         Cube solve();
 
     public:
         GeneticSolver(unsigned int populationSize, unsigned int eliteSize, unsigned int maxGenerationsCount,
-                      unsigned int maxResetCount, unsigned int threadLimit = 1,
+                      unsigned int maxResetCount, unsigned int threadCount = 1,
                       OptimizationType optimizationType = SpeedOptimized,
                       bool verbose = false, std::basic_ostream<char> &out = std::cout);
 
-        //Первый куб - разобранный, хранит последовательность разборки, второй собранный, хранит последовательность для сборки первого,
-        // если решение не найдено, второй куб - первый, без истории комманд
-        Cube Solve(const Cube &);
+        void SolveAsync(const Cube &cube, Cube &solution, bool &solving, bool &solved);
+
+        Cube Solve(const Cube &cube);
     };
 }
 

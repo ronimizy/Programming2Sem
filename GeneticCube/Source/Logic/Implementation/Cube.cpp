@@ -12,6 +12,12 @@
 
 using namespace Logic;
 
+Cube::Cube(const Cube &origin)
+        : history(origin.history), unwrap(origin.unwrap), fitness_(origin.fitness_) {};
+
+Cube::Cube(Cube &&origin) noexcept
+        : history(std::move(origin.history)), unwrap(std::move(origin.unwrap)), fitness_(origin.fitness_) {};
+
 std::string Cube::ToString() const {
     static const char spacer[] = "       ";
     std::stringstream out;
@@ -62,11 +68,7 @@ std::ostream &operator<<(std::ostream &out, const Cube &cube) {
 
 Cube &Cube::operator=(const Cube rhs) {
     if (&rhs != this) {
-        for (int i = 0; i < 6; ++i)
-            for (int j = 0; j < 9; ++j) {
-                unwrap[i][j] = rhs.unwrap[i][j];
-            }
-
+        unwrap = rhs.unwrap;
         history = rhs.history;
         fitness_ = rhs.fitness_;
     }
@@ -80,8 +82,7 @@ void Cube::PerformMove(Moves move) {
     history.push_back(move);
 
     if (move % 10 < 6) {
-        Color buffer[9];
-        std::copy(std::begin(unwrap[move % 10]), std::end(unwrap[move % 10]), buffer);
+        std::vector<Color> buffer(unwrap[move % 10]);
         //Вращение соответствующей стороны
         int counter = 0;
         for (const int &i : faceletRotation[move / 10])
@@ -93,23 +94,21 @@ void Cube::PerformMove(Moves move) {
 
         rotateAdj(
                 std::vector<int>(
-                        std::begin(subFaces[move % 10][move / 10]),
-                        std::end(subFaces[move % 10][move / 10])),
+                        subFaces[move % 10][move / 10].begin(), subFaces[move % 10][move / 10].end()),
                 subFaceletsRotation[move % 10],
                 begins[move % 10]);
     }
 
     rotateAdj(
             std::vector<int>(
-                    std::begin(subFaces[move % 10][move / 10]),
-                    std::end(subFaces[move % 10][move / 10])),
+                    subFaces[move % 10][move / 10].begin(), subFaces[move % 10][move / 10].end()),
             subFaceletsRotation[move % 10],
             begins[move % 10]);
 
     fitness_ = countFitness();
 }
 
-void Cube::rotateAdj(const std::vector<int> &subFaces, const int facelets[6][3], int begin) {
+void Cube::rotateAdj(const std::vector<int> &subFaces, const std::vector<std::vector<int>> &facelets, int begin) {
     //Вращение смежных сторон
     std::queue<Color> queue;
     for (const int &facelet : facelets[begin])
@@ -365,11 +364,21 @@ void Cube::Randomize() {
     std::mt19937 mt(device());
 
     std::uniform_int_distribution<int> commandCountPicker(20, 120);
-    int commandCount = commandCountPicker(device);
+    int commandCount = commandCountPicker(mt);
 
     for (int i = 0; i < commandCount; ++i) {
         PerformMove(randomMove());
     }
 
     std::cout << '\n';
+}
+
+bool Cube::operator==(const Cube &rhs) const {
+    for (int side = 0; side < 6; ++side) {
+        for (int facelet = 0; facelet < 9; ++facelet)
+            if (unwrap[side][facelet] != rhs.unwrap[side][facelet])
+                return false;
+    }
+
+    return true;
 }
