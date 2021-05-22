@@ -7,6 +7,7 @@
 
 #include "Cube.hpp"
 #include "../Utility/ThreadPool.hpp"
+#include "SuccessfulSequences.hpp"
 
 #include <vector>
 #include <iostream>
@@ -62,6 +63,9 @@ namespace Logic {
                 {F2, S2, B2}
         };
 
+        std::mutex learningMutex;
+        SuccessfulSequences successfulSequences;
+
         bool solutionFound = false;
 
         Cube source;
@@ -82,7 +86,7 @@ namespace Logic {
 
         void initPopulation(std::vector<Cube> &) const;
 
-        void mutate(Cube &cube, std::vector<Cube> &population, std::mt19937 &generator) const;
+        void mutate(Cube &cube, std::vector<Cube> &population, std::mt19937 &generator);
 
         void logTopPerformers(const unsigned int &generationsCount, const std::vector<Cube> &population) const;
 
@@ -92,11 +96,13 @@ namespace Logic {
 
         void printCubes(unsigned int upTo, const std::vector<Cube> &population) const;
 
-        Cube optimize(const Cube &);
 
         Cube solve();
 
     public:
+
+        Cube optimize(const Cube &);
+
         GeneticSolver(unsigned int populationSize, unsigned int eliteSize, unsigned int maxGenerationsCount,
                       unsigned int maxResetCount, unsigned int threadCount = 1,
                       OptimizationType optimizationType = SpeedOptimized,

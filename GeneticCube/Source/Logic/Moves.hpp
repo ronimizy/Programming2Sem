@@ -8,6 +8,7 @@
 
 #include <random>
 #include <vector>
+#include <iostream>
 
 //@no-format
 enum Moves {
@@ -40,6 +41,8 @@ std::string moveToString(const Moves &move);
 std::string movesToString(const std::vector<Moves> &moves);
 
 std::vector<Moves> movesFromString(const std::string &string);
+
+std::istream &operator>>(std::istream &, Moves &);
 
 #endif //GENETICCUBE_MOVES_HPP
 

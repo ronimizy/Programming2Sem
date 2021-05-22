@@ -76,10 +76,11 @@ Cube &Cube::operator=(const Cube rhs) {
     return *this;
 }
 
-void Cube::PerformMove(Moves move) {
+Cube &Cube::PerformMove(Moves move) {
     using namespace CubeIndicesData::Rotation;
 
     history.push_back(move);
+    secondaryHistory.push_back(move);
 
     if (move % 10 < 6) {
         std::vector<Color> buffer(unwrap[move % 10]);
@@ -106,6 +107,7 @@ void Cube::PerformMove(Moves move) {
             begins[move % 10]);
 
     fitness_ = countFitness();
+    return *this;
 }
 
 void Cube::rotateAdj(const std::vector<int> &subFaces, const std::vector<std::vector<int>> &facelets, int begin) {
@@ -359,7 +361,7 @@ std::vector<int> Cube::fitnessSolved(const std::vector<int> &sides) const {
     return satisfyingSides;
 }
 
-void Cube::Randomize() {
+Cube & Cube::Randomize() {
     std::random_device device;
     std::mt19937 mt(device());
 
@@ -370,7 +372,7 @@ void Cube::Randomize() {
         PerformMove(randomMove());
     }
 
-    std::cout << '\n';
+    return *this;
 }
 
 bool Cube::operator==(const Cube &rhs) const {

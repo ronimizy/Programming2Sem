@@ -47,7 +47,7 @@ namespace Visualization {
         CubeAnimator(Cube *cube, int fps)
                 : visualCube(cube), FPS(fps), configuration(cube->Configuration()),
                   solver(Logic::GeneticSolver(1000, 20, 200, 10,
-                                              std::thread::hardware_concurrency() - 1, Logic::SpeedOptimized, false)) {};
+                                              std::thread::hardware_concurrency(), Logic::SpeedOptimized, false)) {};
 
         void RenderFrame();
 

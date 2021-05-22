@@ -16,7 +16,7 @@ GeneticSolver::GeneticSolver(unsigned int populationSize, unsigned int eliteSize
                              bool verbose, std::basic_ostream<char> &out)
         : populationSize_(populationSize), eliteSize_(eliteSize), maxGenerationsCount_(maxGenerationsCount),
           maxResetCount_(maxResetCount), optimizationType_(optimizationType), verbose_(verbose), out_(out),
-          threadCount_(threadCount), threadPool(verbose ? 0 : threadCount) {
+          threadCount_(threadCount), threadPool(threadCount) {
 }
 
 void GeneticSolver::initPopulation(std::vector<Cube> &population) const {
@@ -132,34 +132,42 @@ Cube GeneticSolver::Solve(const Cube &cube) {
 
     solutionFound = false;
 
-    out_ << "Source fitness was: " << scrambled.Fitness() << '\n';
-    out_ << "Source scramble was:\n";
-    for (const Moves &move : scrambled.History())
-        out_ << moveToString(move) << ' ';
-    out_ << '\n';
-
     if (solution.History().empty() && solution.Fitness() != Solved) {
         out_ << "No solution was found\n";
     } else {
         out_ << "Found solution requires " << solution.History().size() << " moves.\n"
              << "Optimizing...\n";
         solution = optimize(solution);
+
+        out_ << "Source fitness was: " << scrambled.Fitness() << '\n';
+        out_ << "Source scramble was:\n";
+        for (const Moves &move : scrambled.History())
+            out_ << moveToString(move) << ' ';
+        out_ << '\n';
+
         out_ << "Optimized solution requires " << solution.History().size() << " moves:\n";
         for (const Moves &move : solution.History())
             out_ << moveToString(move) << ' ';
         out_ << '\n';
+
+        if (Cube(source).PerformMoves(solution.History()).Fitness() != Solved) {
+            out_ << "WARNING!!! OPTIMIZED SOLUTION APPEARS TO BE WRONG!!!\n";
+        }
     }
 
     return solution;
 }
 
-void GeneticSolver::mutate(Cube &cube, std::vector<Cube> &population, std::mt19937 &generator) const {
+void GeneticSolver::mutate(Cube &cube, std::vector<Cube> &population, std::mt19937 &generator) {
+    int fitnessIndex = cube.Fitness() / 100;
+
     std::uniform_int_distribution<int> parentPicker(0, (int) eliteSize_ - 1);
-    std::uniform_int_distribution<int> typePicker(0, 5);
+    std::uniform_int_distribution<int> typePicker(0, successfulSequences[fitnessIndex].empty() ? 5 : 6);
 
     std::uniform_int_distribution<int> permutationPicker(0, (int) permutations.size() - 1);
     std::uniform_int_distribution<int> rotationPicker(0, 1);
     std::uniform_int_distribution<int> directionPicker(0, 2);
+    std::uniform_int_distribution<int> successfulPicker(0, (int) successfulSequences[fitnessIndex].size() - 1);
 
     cube = population[parentPicker(generator)];
 
@@ -175,20 +183,33 @@ void GeneticSolver::mutate(Cube &cube, std::vector<Cube> &population, std::mt199
             cube.PerformMoves(permutations[permutationPicker(generator)]);
             cube.PerformMoves(
                     fullRotations[3 * rotationPicker(generator) + directionPicker(generator)]);
+            break;
         case 3:
             cube.PerformMoves(permutations[permutationPicker(generator)]);
             cube.PerformMoves(orientations[directionPicker(generator)]);
+            break;
         case 4:
             cube.PerformMoves(permutations[permutationPicker(generator)]);
             cube.PerformMoves(
                     fullRotations[3 * rotationPicker(generator) + directionPicker(generator)]);
             cube.PerformMoves(orientations[directionPicker(generator)]);
+            break;
         case 5:
             cube.PerformMoves(orientations[directionPicker(generator)]);
             cube.PerformMoves(permutations[permutationPicker(generator)]);
             cube.PerformMoves(fullRotations[3 * rotationPicker(generator) + directionPicker(generator)]);
+            break;
+        case 6:
+            cube.PerformMoves(successfulSequences[fitnessIndex][successfulPicker(generator)]);
+            break;
         default:
             cube.PerformMove(randomMove());
+    }
+
+    if (cube.Fitness() / 100 > fitnessIndex) {
+        std::unique_lock<std::mutex> lock(learningMutex);
+        successfulSequences[fitnessIndex].push_back(cube.SecondaryHistory());
+        cube.ClearSecondaryHistory();
     }
 }
 
@@ -209,7 +230,8 @@ void GeneticSolver::logProgressMultiThread(const Cube &top, unsigned int generat
 
     std::unique_lock<std::mutex> lock(logMutex);
 
-    out_ << "Thread " << std::this_thread::get_id() << " top performer at generation " << generationNumber << " has [" << top.Fitness() << "] fitness with "
+    out_ << "Thread " << std::this_thread::get_id() << " top performer at generation " << generationNumber << " has ["
+         << top.Fitness() << "] fitness with "
          << top.History().size() << " moves\n";
 }
 
@@ -241,8 +263,9 @@ struct GeneticSolver::SolutionCycle {
 
     SolutionCycle &operator=(const SolutionCycle &) = default;
 
+    [[nodiscard]]
     inline int eliminating() const {
-        return (int) coordinates.second - (int) coordinates.first - (int) adjustment.size();
+        return (int) coordinates.second - (int) coordinates.first + 1 - (int) adjustment.size();
     }
 };
 
@@ -276,50 +299,51 @@ Cube GeneticSolver::optimize(const Cube &solution) {
         }
     }
 
-    Cube origin(source);
+    out_ << "After removing mutually compensating moves found solution requires " << cube.History().size() << " moves\n";
+
+    Cube state(source);
     std::vector<SolutionCycle> cycles;
     std::mutex mutex;
     std::condition_variable cv;
     unsigned int done = 0;
 
-    for (int i = 0; i < cube.History().size(); ++i) {
-        threadPool.enqueue([&, i, origin]() -> void {
-            Cube iterator(origin.WithCleanHistory());
+    for (int moveLeadToStateIndex = -1; moveLeadToStateIndex < (int) cube.History().size() - 1; ++moveLeadToStateIndex) {
+        if (moveLeadToStateIndex != -1)
+            state.PerformMove(cube.History()[moveLeadToStateIndex]);
+
+        threadPool.enqueue([&, moveLeadToStateIndex, state]() -> void {
+            Cube modifiedState(state.WithCleanHistory());
             SolutionCycle cycle;
 
-            for (int j = i; j < cube.History().size(); ++j) {
-                iterator.PerformMove(cube.History()[j]);
-                if (origin == iterator) {
-                    std::unique_lock<std::mutex> lock(mutex);
-
-                    cycle.sequence = iterator.History();
+            for (int j = moveLeadToStateIndex + 1; j < cube.History().size(); ++j) {
+                modifiedState.PerformMove(cube.History()[j]);
+                if (state == modifiedState) {
+                    cycle.sequence = modifiedState.History();
                     cycle.adjustment = {};
-                    cycle.coordinates = {i, j};
+                    cycle.coordinates = {moveLeadToStateIndex + 1, j};
 
                     continue;
                 }
 
                 for (std::vector<Moves> const &axisRotation : fullRotations) {
-                    iterator.PerformMoves(axisRotation);
-                    if (origin == iterator) {
-                        std::unique_lock<std::mutex> lock(mutex);
-
-                        cycle.sequence = iterator.History();
-                        cycle.adjustment = {};
-                        cycle.coordinates = {i, j};
+                    Cube rotatedState(state);
+                    rotatedState.PerformMoves(axisRotation);
+                    if (modifiedState == rotatedState) {
+                        cycle.sequence = modifiedState.History();
+                        cycle.adjustment = axisRotation;
+                        cycle.coordinates = {moveLeadToStateIndex + 1, j};
 
                         continue;
                     }
                 }
 
-                for (std::vector<Moves> const &axisOrientation : orientations) {
-                    iterator.PerformMoves(axisOrientation);
-                    if (origin == iterator) {
-                        std::unique_lock<std::mutex> lock(mutex);
-
-                        cycle.sequence = iterator.History();
-                        cycle.adjustment = {};
-                        cycle.coordinates = {i, j};
+                for (std::vector<Moves> const &orientation : orientations) {
+                    Cube rotatedState(state);
+                    rotatedState.PerformMoves(orientation);
+                    if (modifiedState == rotatedState) {
+                        cycle.sequence = modifiedState.History();
+                        cycle.adjustment = orientation;
+                        cycle.coordinates = {moveLeadToStateIndex + 1, j};
 
                         continue;
                     }
@@ -329,37 +353,47 @@ Cube GeneticSolver::optimize(const Cube &solution) {
             std::unique_lock<std::mutex> lock(mutex);
             ++done;
             cv.notify_one();
+
             if (cycle.coordinates.second != -1 &&
                 cycle.coordinates.second - cycle.coordinates.first > cycle.adjustment.size()) {
-                out_ << "State at position " << i << "repeated itself at position " << cycle.coordinates.second
-                     << " eliminating " << cycle.eliminating() << " moves\n";
+                if (verbose_) {
+                    out_ << "State at position " << moveLeadToStateIndex << " repeated itself at position " << cycle.coordinates.second
+                         << " eliminating " << cycle.eliminating() << " moves\n";
+                }
                 cycles.push_back(cycle);
             }
         });
-
-        origin.PerformMove(cube.History()[i]);
     }
 
     std::unique_lock<std::mutex> lock(mutex);
     cv.wait(lock, [&] { return done == cube.History().size(); });
 
-    std::sort(cycles.begin(), cycles.end(), [] (const SolutionCycle &lhs, const SolutionCycle &rhs) {
+    if (cycles.empty())
+        return cube;
+
+    std::sort(cycles.begin(), cycles.end(), [](const SolutionCycle &lhs, const SolutionCycle &rhs) {
         return lhs.eliminating() > rhs.eliminating();
     });
 
     for (int i = 0; i < cycles.size() - 1; ++i) {
         for (int j = i + 1; j < cycles.size(); ++j) {
-            if (cycles[j].coordinates.first < cycles[i].coordinates.second)
+            if (cycles[i].coordinates.first < cycles[j].coordinates.first &&
+                cycles[j].coordinates.first < cycles[i].coordinates.second) {
                 cycles.erase(cycles.begin() + j);
+                --j;
+            }
         }
     }
 
-    std::sort(cycles.begin(), cycles.end(), [] (const SolutionCycle &lhs, const SolutionCycle &rhs) {
+    std::sort(cycles.begin(), cycles.end(), [](const SolutionCycle &lhs, const SolutionCycle &rhs) {
         return lhs.coordinates.first < rhs.coordinates.first;
     });
 
-    for (auto &cycle : cycles) {
-        std::cout << cycle.coordinates.first << ' ' << cycle.coordinates.second << '\n';
+    if (verbose_) {
+        for (auto &cycle : cycles) {
+            out_ << cycle.coordinates.first << ' ' << cycle.coordinates.second << "\n\t" << movesToString(cycle.sequence)
+                 << "\n\t" << movesToString(cycle.adjustment) << '\n';
+        }
     }
 
     int offset = 0;

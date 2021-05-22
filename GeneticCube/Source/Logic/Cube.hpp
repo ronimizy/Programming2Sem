@@ -55,6 +55,7 @@ namespace Logic {
         constexpr static const int opposites[6] = {2, 3, 0, 1, 5, 4};
 
         std::vector<Moves> history;
+        std::vector<Moves> secondaryHistory;
 
         int fitness_ = FitnessStates::Solved;
 
@@ -95,27 +96,46 @@ namespace Logic {
 
         Cube(const Cube &);
 
-        Cube (Cube &&) noexcept;
+        Cube(Cube &&) noexcept;
 
-        void PerformMove(Moves);
+        Cube &PerformMove(Moves);
 
-        void PerformMoves(const std::vector<Moves> &moves) {
+        Cube &PerformMoves(const std::vector<Moves> &moves) {
             for (const Moves &move : moves)
                 PerformMove(move);
+
+            return *this;
         }
 
         inline const int &Fitness() const { return fitness_; }
 
         int NaiveFitness() const;
 
-        void Randomize();
+        Cube &Randomize();
 
         inline const std::vector<Moves> &History() const { return history; }
 
-        inline void ClearHistory() { history.clear(); }
+        inline Cube &ClearHistory() {
+            history.clear();
+            return *this;
+        }
 
-        inline void EraseMoveAt(size_t i) { history.erase(history.begin() + i); }
-        inline void InsertMoveAt(size_t i, Moves move) { history.insert(history.begin() + i, move); }
+        inline const std::vector<Moves> &SecondaryHistory() const { return secondaryHistory; }
+
+        inline Cube &ClearSecondaryHistory() {
+            secondaryHistory.clear();
+            return *this;
+        }
+
+        inline Cube &EraseMoveAt(size_t i) {
+            history.erase(history.begin() + i);
+            return *this;
+        }
+
+        inline Cube &InsertMoveAt(size_t i, Moves move) {
+            history.insert(history.begin() + i, move);
+            return *this;
+        }
 
         std::string ToString() const;
 

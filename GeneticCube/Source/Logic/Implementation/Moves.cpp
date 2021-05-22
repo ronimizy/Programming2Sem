@@ -129,3 +129,12 @@ std::vector<Moves> movesFromString(const std::string &string) {
 
     return result;
 }
+
+std::istream &operator>>(std::istream &in, Moves &move) {
+    int value;
+    in >> value;
+
+    move = Moves(value);
+
+    return in;
+}

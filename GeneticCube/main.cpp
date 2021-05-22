@@ -5,11 +5,20 @@
 
 URHO3D_DEFINE_APPLICATION_MAIN(Visualization::RubikApplication)
 
+//
+//int main() {
+//    Logic::Cube cube;
+//    cube.PerformMoves({L, M, RR, L, M, RR, L, M, RR, L, M, RR});
+//
+//    Logic::GeneticSolver solver(1000, 20, 200, 10,
+//                                1, Logic::SpeedOptimized, false);
+//
+//    std::cout << "--\n" << movesToString(solver.optimize(cube).History()).size();
+//}
 
 //int main() {
-
 //    std::cout << movesToString(Logic::Cube(true).History());
-
+//
 //
 //    std::clock_t start = clock();
 //
@@ -36,6 +45,6 @@ URHO3D_DEFINE_APPLICATION_MAIN(Visualization::RubikApplication)
 //    std::cout << "\n\n----------------\n\n";
 //    std::cout << "Program was running for " << (clock() - start) / (CLOCKS_PER_SEC * 60) << " minutes";
 //    std::cout << "\n\n----------------";
-//
+
 //    return 0;
 //}
