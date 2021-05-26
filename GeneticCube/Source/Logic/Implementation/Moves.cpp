@@ -5,6 +5,8 @@
 #include "../Moves.hpp"
 #include <sstream>
 
+using namespace Logic;
+
 Moves randomMove() {
     static std::random_device device;
     static std::mt19937 mt(device());

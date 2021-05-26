@@ -56,7 +56,7 @@ public:
     }
 
 
-    RotationConfiguration &operator=(const Moves &rhs) {
+    RotationConfiguration &operator=(const Logic::Moves &rhs) {
         RotationConfiguration r(rhs);
         orientation = r.orientation;
         dimension = r.dimension;
@@ -66,18 +66,18 @@ public:
         return *this;
     }
 
-    RotationConfiguration(Moves move) {
+    RotationConfiguration(Logic::Moves move) {
         if (move / 10 == 0) {
-            if (move % 10 == Moves::Right ||
-                move % 10 == Moves::Back ||
-                move % 10 == Moves::Up)
+            if (move % 10 == Logic::Moves::Right ||
+                move % 10 == Logic::Moves::Back ||
+                move % 10 == Logic::Moves::Up)
                 direction = QuarterTurn;
             else
                 direction = CounterQuarterTurn;
         } else if (move / 10 == 1) {
-            if (move % 10 == Moves::Right ||
-                move % 10 == Moves::Back ||
-                move % 10 == Moves::Up)
+            if (move % 10 == Logic::Moves::Right ||
+                move % 10 == Logic::Moves::Back ||
+                move % 10 == Logic::Moves::Up)
                 direction = CounterQuarterTurn;
             else
                 direction = QuarterTurn;
@@ -85,33 +85,33 @@ public:
             direction = HalfTurn;
         }
 
-        if (move % 10 == Moves::Up ||
-            move % 10 == Moves::Edge ||
-            move % 10 == Moves::Down)
+        if (move % 10 == Logic::Moves::Up ||
+            move % 10 == Logic::Moves::Edge ||
+            move % 10 == Logic::Moves::Down)
             dimension = Dimension::Horizontal;
         else
             dimension = Dimension::Vertical;
 
-        if (move % 10 == Moves::Left ||
-            move % 10 == Moves::Middle ||
-            move % 10 == Moves::Right)
+        if (move % 10 == Logic::Moves::Left ||
+            move % 10 == Logic::Moves::Middle ||
+            move % 10 == Logic::Moves::Right)
             orientation = Orientation::Front;
         else
             orientation = Orientation::Side;
 
-        if (move % 10 == Moves::Left ||
-            move % 10 == Moves::Front ||
-            move % 10 == Moves::Down)
+        if (move % 10 == Logic::Moves::Left ||
+            move % 10 == Logic::Moves::Front ||
+            move % 10 == Logic::Moves::Down)
             position = Position::Close;
-        else if (move % 10 == Moves::Middle ||
-                 move % 10 == Moves::Side ||
-                 move % 10 == Moves::Edge)
+        else if (move % 10 == Logic::Moves::Middle ||
+                 move % 10 == Logic::Moves::Side ||
+                 move % 10 == Logic::Moves::Edge)
             position = Position::Middle;
         else
             position = Position::Far;
     }
 
-    Moves ToMove() {
+    Logic::Moves ToMove() {
         int type;
         int face;
 
@@ -126,28 +126,28 @@ public:
 
         if (position == Close) {
             if (dimension == Horizontal)
-                face = Moves::Down;
+                face = Logic::Moves::Down;
             else if (orientation == Front)
-                face = Moves::Left;
+                face = Logic::Moves::Left;
             else
-                face = Moves::Front;
+                face = Logic::Moves::Front;
         } else if (position == Middle) {
             if (dimension == Horizontal)
-                face = Moves::Edge;
+                face = Logic::Moves::Edge;
             else if (orientation == Front)
-                face = Moves::Middle;
+                face = Logic::Moves::Middle;
             else
-                face = Moves::Side;
+                face = Logic::Moves::Side;
         } else {
             if (dimension == Horizontal)
-                face = Moves::Up;
+                face = Logic::Moves::Up;
             else if (orientation == Front)
-                face = Moves::Right;
+                face = Logic::Moves::Right;
             else
-                face = Moves::Back;
+                face = Logic::Moves::Back;
         }
 
-        return Moves(10 * type + face);
+        return Logic::Moves(10 * type + face);
     }
 };
 

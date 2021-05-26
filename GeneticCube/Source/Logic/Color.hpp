@@ -6,6 +6,8 @@
 #define GENETICCUBE_COLOR_HPP
 
 #include <iostream>
+#include <compare>
+#include <vector>
 
 //@no-format
 namespace Logic {
@@ -13,7 +15,7 @@ namespace Logic {
         int value;
 
     public:
-        Color(int c = 0) : value(c) {}
+        Color(int v) : value(v) {};
 
         Color(const char &c) {
             switch (c) {
@@ -46,38 +48,20 @@ namespace Logic {
 
         inline friend bool operator<(const Color &lhs, const int &rhs) { return lhs.value < rhs; }
 
-        inline Color& operator++(int) { ++value; return *this; }
+        inline Color& operator++() { ++value; return *this; }
 
-        inline Color operator++() { Color c(value); ++value; return c; }
+        inline Color operator++(int) { Color c(value); ++value; return c; }
 
         inline operator int() const { return value; }
 
         operator char() const {
-            char v;
-            switch (value) {
-                case 0:
-                    v = 'W';
-                    break;
-                case 1:
-                    v = 'G';
-                    break;
-                case 2:
-                    v = 'Y';
-                    break;
-                case 3:
-                    v = 'B';
-                    break;
-                case 4:
-                    v = 'O';
-                    break;
-                case 5:
-                    v = 'R';
-                    break;
-                default:
-                    throw std::invalid_argument("not a valid color");
-            }
+            static const std::vector<char> array {'W', 'G', 'Y', 'B', 'O', 'R'};
 
-            return v;
+            try {
+                return array.at(value);
+            } catch (std::exception &) {
+                throw std::invalid_argument("Invalid color was given");
+            }
         }
 
         inline friend std::ostream &operator<<(std::ostream &out, const Logic::Color &color) {

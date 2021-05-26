@@ -82,7 +82,7 @@ void GeneticSolver::SolveAsync(const Cube &cube, Cube &solution, bool &solving, 
     solving = true;
     solved = false;
 
-    threadPool.enqueue([&] {
+    threadPool.Enqueue([&] {
         solution = Solve(cube);
 
         solved = true;
@@ -105,7 +105,7 @@ Cube GeneticSolver::Solve(const Cube &cube) {
         unsigned int done = 0;
 
         for (int _ = 0; _ < threadCount_; ++_)
-            threadPool.enqueue([&]() -> void {
+            threadPool.Enqueue([&]() -> void {
                 Cube result = solve();
 
                 std::unique_lock<std::mutex> lock(mutex);
@@ -322,7 +322,7 @@ Cube GeneticSolver::optimize(const Cube &solution) {
         if (moveLeadToStateIndex != -1)
             state.PerformMove(phaseTwoCube.History()[moveLeadToStateIndex]);
 
-        threadPool.enqueue([&, moveLeadToStateIndex, state]() -> void {
+        threadPool.Enqueue([&, moveLeadToStateIndex, state]() -> void {
             Cube modifiedState(state.WithCleanHistory());
             SolutionCycle cycle;
 
@@ -368,7 +368,8 @@ Cube GeneticSolver::optimize(const Cube &solution) {
             if (cycle.coordinates.second != -1 &&
                 cycle.coordinates.second - cycle.coordinates.first > cycle.adjustment.size()) {
                 if (loggingMode_ == Verbose) {
-                    out_ << "State at position " << moveLeadToStateIndex << " repeated itself at position " << cycle.coordinates.second
+                    out_ << "State at position " << moveLeadToStateIndex << " repeated itself at position "
+                         << cycle.coordinates.second
                          << " eliminating " << cycle.eliminating() << " moves\n";
                 }
                 cycles.push_back(cycle);

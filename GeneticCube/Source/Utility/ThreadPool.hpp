@@ -17,34 +17,38 @@
 
 namespace Utility {
     class ThreadPool {
-    public:
-        ThreadPool(size_t);
-        template<class F, class... Args>
-        auto enqueue(F &&f, Args &&... args)
-        -> std::future<typename std::result_of<F(Args...)>::type>;
-        ~ThreadPool();
-    private:
-        std::vector<std::thread> workers;
+        std::vector<std::thread> threads;
         std::queue<std::function<void()> > tasks;
 
-        std::mutex queue_mutex;
-        std::condition_variable condition;
+        std::mutex queueMutex;
+        std::condition_variable cv;
         bool stop;
+
+
+    public:
+        ThreadPool(size_t);
+
+        template<class F, class... Args>
+        auto Enqueue(F &&f, Args &&... args) -> std::future<typename std::result_of<F(Args...)>::type>;
+
+        void Invalidate() { stop = true; }
+
+        ~ThreadPool();
     };
 
 
-    inline ThreadPool::ThreadPool(size_t threads)
+    inline ThreadPool::ThreadPool(size_t size)
             : stop(false) {
-        for (size_t i = 0; i < threads; ++i)
-            workers.emplace_back(
+        for (size_t i = 0; i < size; ++i)
+            threads.emplace_back(
                     [this] {
                         for (;;) {
                             std::function<void()> task;
 
                             {
-                                std::unique_lock<std::mutex> lock(this->queue_mutex);
-                                this->condition.wait(lock,
-                                                     [this] { return this->stop || !this->tasks.empty(); });
+                                std::unique_lock<std::mutex> lock(this->queueMutex);
+                                this->cv.wait(lock,
+                                              [this] { return this->stop || !this->tasks.empty(); });
                                 if (this->stop && this->tasks.empty())
                                     return;
                                 task = std::move(this->tasks.front());
@@ -58,8 +62,7 @@ namespace Utility {
     }
 
     template<class F, class... Args>
-    auto ThreadPool::enqueue(F &&f, Args &&... args)
-    -> std::future<typename std::result_of<F(Args...)>::type> {
+    auto ThreadPool::Enqueue(F &&f, Args &&... args) -> std::future<typename std::result_of<F(Args...)>::type> {
         using return_type = typename std::result_of<F(Args...)>::type;
 
         auto task = std::make_shared<std::packaged_task<return_type()> >(
@@ -68,23 +71,23 @@ namespace Utility {
 
         std::future<return_type> res = task->get_future();
         {
-            std::unique_lock<std::mutex> lock(queue_mutex);
+            std::unique_lock<std::mutex> lock(queueMutex);
             if (stop)
-                throw std::runtime_error("enqueue on stopped ThreadPool");
+                throw std::runtime_error("Enqueue on stopped ThreadPool");
 
             tasks.emplace([task]() { (*task)(); });
         }
-        condition.notify_one();
+        cv.notify_one();
         return res;
     }
 
     inline ThreadPool::~ThreadPool() {
         {
-            std::unique_lock<std::mutex> lock(queue_mutex);
+            std::unique_lock<std::mutex> lock(queueMutex);
             stop = true;
         }
-        condition.notify_all();
-        for (std::thread &worker: workers)
+        cv.notify_all();
+        for (std::thread &worker: threads)
             worker.join();
     }
 }

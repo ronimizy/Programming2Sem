@@ -49,7 +49,7 @@ namespace Visualization {
         CubeAnimator(Cube *cube, int fps)
                 : visualCube(cube), FPS(fps), configuration(cube->Configuration()),
                   solver(Logic::GeneticSolver(1000, 20, 200, 10,
-                                              std::thread::hardware_concurrency(), Logic::Balanced,
+                                              std::thread::hardware_concurrency() - 1, Logic::Balanced,
                                               Logic::Descriptive)) {};
 
         ~CubeAnimator() {
@@ -68,9 +68,9 @@ namespace Visualization {
 
         bool TryFlipDimension();
 
-        void AddMove(Moves);
+        void AddMove(Logic::Moves);
 
-        void AddMoves(const std::vector<Moves> &);
+        void AddMoves(const std::vector<Logic::Moves> &);
 
         inline bool IsHorizontal() const { return configuration.dimension; }
 
