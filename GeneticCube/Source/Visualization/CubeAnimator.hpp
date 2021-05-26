@@ -38,7 +38,7 @@ namespace Visualization {
         float singleDuration = 0.2f;
 
         inline void calculateStep() {
-            step_ = (float) configuration.direction / (singleDuration * FPS);
+            step_ = (float) configuration.direction / (singleDuration * (float) FPS);
         };
 
         void setCurrentRotation(const RotationConfiguration &);
@@ -76,12 +76,7 @@ namespace Visualization {
 
         inline Urho3D::Vector3 Center() { return visualCube->Center(); }
 
-        inline void SetDuration(float d) {
-            if (animating_)
-                return;
-
-            singleDuration = baseDuration + d;
-        }
+        inline void SetDuration(float d) { singleDuration = baseDuration + d; }
 
         inline float &GetDuration() { return singleDuration; }
 

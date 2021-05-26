@@ -16,6 +16,7 @@ namespace Visualization {
         Urho3D::SharedPtr<Urho3D::Scene> scene_;
         Urho3D::SharedPtr<Urho3D::Node> cameraNode_;
         Urho3D::SharedPtr<Urho3D::Slider> durationSlider_;
+        Urho3D::SharedPtr<Urho3D::Text> helpText_;
 
         CubeAnimator *animator_;
 
@@ -44,6 +45,8 @@ namespace Visualization {
         void HandleQuit(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
 
         void HandleFile(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
+
+        void HandleClear(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
 
         ~RubikApplication() {
             delete animator_;
