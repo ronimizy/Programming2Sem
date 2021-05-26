@@ -86,6 +86,9 @@ namespace Visualization {
         inline float &GetDuration() { return singleDuration; }
 
         inline void SetUnwrap(const Logic::Cube &cube) {
+            if (animating_ || solving_)
+                return;
+
             logicCube = cube;
             visualCube->SetUnwrap(cube);
         }

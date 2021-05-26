@@ -27,9 +27,6 @@ namespace Visualization {
         const float SCALE = 20.0f;
         const float SPACING = 0.1f;
 
-        Urho3D::SharedPtr<Urho3D::Material> unselected_;
-        Urho3D::SharedPtr<Urho3D::Material> selected_;
-
         void setSelection(bool selected);
 
         [[nodiscard]]

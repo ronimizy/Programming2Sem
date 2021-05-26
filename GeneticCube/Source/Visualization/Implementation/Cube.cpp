@@ -18,9 +18,6 @@ Cube::Cube(Urho3D::SharedPtr<Urho3D::Scene> &scene, Urho3D::ResourceCache *cache
             (SCALE / (float) (CUBE_SIZE * CUBE_SIZE) + SPACING)
     };
 
-    unselected_ = cache->GetResource<Urho3D::Material>("Materials/RubikUnselected.xml");
-    selected_ = cache->GetResource<Urho3D::Material>("Materials/RubikSelected.xml");
-
     cubes.resize(CUBE_SIZE);
     for (size_t i = 0; i < CUBE_SIZE; ++i) {
         cubes[i].resize(CUBE_SIZE);
@@ -50,7 +47,7 @@ Cube::Cube(Urho3D::SharedPtr<Urho3D::Scene> &scene, Urho3D::ResourceCache *cache
     }
 
     SetUnwrap(Logic::Cube{});
-    setSelection(selected_);
+    Select();
 }
 
 void Cube::setSelection(bool selected) {
