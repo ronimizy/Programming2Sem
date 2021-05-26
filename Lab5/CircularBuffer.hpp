@@ -10,18 +10,18 @@ template<typename T, typename _Alloc = std::allocator<T> >
 class CircularBuffer {
     using traits_ = std::allocator_traits<_Alloc>;
 
-    _Alloc allocator_;
-    T *memory_;
-
-    size_t capacity_;
     size_t size_ = 0;
+    size_t capacity_;
 
     size_t front_ = 0;
     size_t back_ = 1;
 
+    _Alloc allocator_;
+    T *memory_;
+
 
     /** PrivateMethods.hpp **/
-    void increment(size_t &i, long by = 1) const;
+    void increment(size_t &i, long by = 1, size_t mod = 1) const;
 
     size_t incremented(const size_t &i, long by = 1) const;
 
@@ -38,19 +38,18 @@ class CircularBuffer {
 
         size_t i = 0;
         for (auto &it : *this) {
-            if (i == __capacity) {
-                traits_::destroy(allocator_, &it);
-            } else {
-                newMemory[1 + i++] = it;
+            if (i != __capacity) {
+                traits_::construct(allocator_, &newMemory[1 + i++], it);
             }
 
+            traits_::destroy(allocator_, &it);
         }
 
-        std::allocator_traits<_Alloc>::deallocate(allocator_, memory_, capacity_);
+        traits_::deallocate(allocator_, memory_, capacity_);
 
         memory_ = newMemory;
+        back_ = (capacity_ < __capacity) ? size_ + 1 : __capacity + 1;
         front_ = 0;
-        back_ = (capacity_ < __capacity) ? capacity_ + 1 : __capacity + 1;
 
         capacity_ = __capacity;
         if (size_ > __capacity) {
@@ -132,14 +131,14 @@ public:
         using pointer = T *;
         using reference = T &;
 
-        iterator(CircularBuffer &buffer, const size_t &index)
+        iterator(CircularBuffer *buffer, const size_t &index)
                 : buffer_(buffer), index_(index) {};
 
-        reference operator*() const { return buffer_.get_(index_); }
+        reference operator*() const { return buffer_->get_(index_); }
 
-        pointer operator&() const { return &buffer_.get_(index_); }
+        pointer operator&() const { return &buffer_->get_(index_); }
 
-        pointer operator->() const { return &buffer_.get_(index_); }
+        pointer operator->() const { return &buffer_->get_(index_); }
 
         iterator &operator++() {
             index_++;
@@ -165,96 +164,100 @@ public:
             return temp;
         }
 
+        bool operator==(const iterator &rhs) const {
+            return index_ == rhs.index_;
+        }
+
         bool operator!=(iterator &rhs) const {
             return index_ != rhs.index_;
         }
 
         reference operator[](size_t i) const {
-            return buffer_.get_(buffer_.front_ + index_ + i);
+            return buffer_->get_(buffer_->front_ + index_ + i);
         }
 
         iterator &operator+=(long n) {
-            buffer_.increment(index_, n);
+            buffer_->increment(index_, n);
 
             return *this;
         }
 
         iterator &operator-=(long n) {
-            buffer_.decrement(index_, n);
+            buffer_->decrement(index_, n);
 
             return *this;
         }
 
-        iterator &operator+(const long n) const {
+        iterator operator+(const long n) const {
             iterator iterator(buffer_, index_);
-            buffer_.increment(iterator.index_, n);
+            buffer_->increment(iterator.index_, n);
 
             return iterator;
         }
 
         friend iterator &operator+(const long n, const iterator &i) {
             iterator iterator(i.buffer_, i.index_);
-            i.buffer_.increment(iterator.index_, n);
+            i.buffer_->increment(iterator.index_, n);
 
             return iterator;
         }
 
         iterator &operator-(const long n) const {
             iterator iterator(buffer_, index_);
-            buffer_.decrement(iterator.index_, n);
+            buffer_->decrement(iterator.index_, n);
 
             return iterator;
         }
 
         friend iterator &operator-(long n, const iterator &i) {
             iterator iterator(i.buffer_, i.index_);
-            i.buffer_.decrement(iterator.index_, n);
+            i.buffer_->decrement(iterator.index_, n);
 
             return iterator;
         }
 
         size_t operator-(const iterator &rhs) const {
-            if (buffer_.back_ - buffer_.front_ < 0) {
-                return buffer_.capacity_ - abs(index_ - rhs.index_);
+            if (buffer_->back_ - buffer_->front_ < 0) {
+                return buffer_->capacity_ - index_ + rhs.index_;
             } else {
-                return abs(index_ - rhs.index_);
+                return index_ - rhs.index_;
             }
         }
 
         bool operator<(const iterator &rhs) const {
-            if (buffer_.back_ - buffer_.front_ < 0) {
-                return buffer_.capacity_ - index_ + rhs.index_ < 0;
+            if (buffer_->back_ - buffer_->front_ < 0) {
+                return buffer_->capacity_ - index_ + rhs.index_ < 0;
             } else {
                 return index_ - rhs.index_ < 0;
             }
         }
 
         bool operator>(const iterator &rhs) const {
-            if (buffer_.back_ - buffer_.front_ < 0) {
-                return buffer_.capacity_ - index_ + rhs.index_ > 0;
+            if (buffer_->back_ - buffer_->front_ < 0) {
+                return buffer_->capacity_ - index_ + rhs.index_ > 0;
             } else {
                 return index_ - rhs.index_ > 0;
             }
         }
 
         bool operator<=(const iterator &rhs) const {
-            if (buffer_.back_ - buffer_.front_ < 0) {
-                return buffer_.capacity_ - index_ + rhs.index_ <= 0;
+            if (buffer_->back_ - buffer_->front_ < 0) {
+                return buffer_->capacity_ - index_ + rhs.index_ <= 0;
             } else {
                 return index_ - rhs.index_ <= 0;
             }
         }
 
         bool operator>=(const iterator &rhs) const {
-            if (buffer_.back_ - buffer_.front_ < 0) {
-                return buffer_.capacity_ - index_ + rhs.index_ >= 0;
+            if (buffer_->back_ - buffer_->front_ < 0) {
+                return buffer_->capacity_ - index_ + rhs.index_ >= 0;
             } else {
                 return index_ - rhs.index_ >= 0;
             }
         }
 
     private:
-        CircularBuffer &buffer_;
+        CircularBuffer *buffer_;
         size_t index_;
     };
 
@@ -274,9 +277,9 @@ public:
     T &back() const { return get_(back_ - 2); }
 
 //Uses passed index as offset from front_
-    iterator begin() { return iterator(*this, 0); }
+    iterator begin() { return iterator(this, 0); }
 
-    iterator end() { return iterator(*this, size_); }
+    iterator end() { return iterator(this, size_); }
 
     /** Inserting **/
     void push_back(T &&value) { put_(value, true); }
@@ -287,11 +290,11 @@ public:
 
     void push_front(const T &value) { put_(value, false); }
 
-    template<typename... Args>
-    void emplace_back(Args &&... init) { put_(T(init...), true); };
-
-    template<typename... Args>
-    void emplace_front(Args &&... init) { put_(T(init...), false); };
+//    template<typename... Args>
+//    void emplace_back(Args &&... init) { put_(T(init...), true); };
+//
+//    template<typename... Args>
+//    void emplace_front(Args &&... init) { put_(T(init...), false); };
 
     /** Ejecting **/
     T pop_back() { return pop_(true); }
@@ -313,7 +316,7 @@ public:
         }
 
         for (size_t i = size_; i < size; ++i) {
-            (*this)[i] = defaultValue;
+            traits_::construct(allocator_, &((*this)[i]), defaultValue);
         }
 
         back_ -= size_ - size;

@@ -10,7 +10,7 @@
 /** Index changes **/
 //Increment
 template<typename T, typename allocator_type>
-void CircularBuffer<T, allocator_type>::increment(size_t &i, long by) const {
+void CircularBuffer<T, allocator_type>::increment(size_t &i, long by, size_t mod) const {
     if ((long) i + by < 0) {
         by = (capacity_ + by) % capacity_;
     }
