@@ -3,8 +3,12 @@
 //
 
 #include "../RubikApplication.hpp"
+#include "../Box.hpp"
 
 #include <filesystem>
+#include <fstream>
+#include <sstream>
+#include <Urho3D/UI/MessageBox.h>
 
 using namespace Visualization;
 
@@ -32,7 +36,6 @@ void RubikApplication::Start() {
     scene_->CreateComponent<Urho3D::DebugRenderer>();
 
     /** Models **/
-
     Urho3D::Node *skyNode = scene_->CreateChild("Sky");
     skyNode->SetScale(500.0f);
     auto *skybox = skyNode->CreateComponent<Urho3D::Skybox>();
@@ -45,68 +48,104 @@ void RubikApplication::Start() {
 
     animator_ = new CubeAnimator(new Visualization::Cube(scene_, cache), engine_->GetMaxFps());
 
+
     cameraNode_->SetPosition(animator_->Center());
-    cameraNode_->Translate({0, 0, 10});
+    cameraNode_->Translate({0, 0, minDistance});
     cameraNode_->RotateAround(animator_->Center(), {135, {0, 1, 0}}, Urho3D::TS_WORLD);
     cameraNode_->RotateAround(animator_->Center(), {30, {1, 0, 0}}, Urho3D::TS_WORLD);
 
     defaultCameraDirection = (cameraNode_->GetPosition() - animator_->Center()).Normalized();
 
     /** UI **/
-    auto *randomizeButton = new Urho3D::Button(context_);
-    GetSubsystem<Urho3D::UI>()->GetRoot()->AddChild(randomizeButton);
-    randomizeButton->SetName("RandomizeButton");
-    randomizeButton->SetStyle("Button");
-    randomizeButton->SetSize(200, 100);
-    randomizeButton->SetPosition(70, 60);
-    SubscribeToEvent(randomizeButton, Urho3D::E_RELEASED, URHO3D_HANDLER(RubikApplication, HandleRandomize));
+    {
+        auto *randomizeButton = new Urho3D::Button(context_);
+        GetSubsystem<Urho3D::UI>()->GetRoot()->AddChild(randomizeButton);
+        randomizeButton->SetName("RandomizeButton");
+        randomizeButton->SetStyle("Button");
+        randomizeButton->SetSize(200, 100);
+        randomizeButton->SetPosition(70, 60);
+        SubscribeToEvent(randomizeButton, Urho3D::E_RELEASED, URHO3D_HANDLER(RubikApplication, HandleRandomize));
 
-    auto *randomizeText = new Urho3D::Text(context_);
-    randomizeButton->AddChild(randomizeText);
-    randomizeText->SetName("RandomizeText");
-    randomizeText->SetText("RANDOMIZE");
-    randomizeText->SetFont(cache->GetResource<Urho3D::Font>("Fonts/ALSSchlangesans-Bold.ttf"), 25);
-    randomizeText->SetColor({1, 1, 1});
-    randomizeText->SetAlignment(Urho3D::HA_CENTER, Urho3D::VA_CENTER);
+        auto *randomizeText = new Urho3D::Text(context_);
+        randomizeButton->AddChild(randomizeText);
+        randomizeText->SetName("RandomizeText");
+        randomizeText->SetText("RANDOMIZE");
+        randomizeText->SetFont(cache->GetResource<Urho3D::Font>("Fonts/ALSSchlangesans-Bold.ttf"), 25);
+        randomizeText->SetColor({1, 1, 1});
+        randomizeText->SetAlignment(Urho3D::HA_CENTER, Urho3D::VA_CENTER);
 
-    auto *solveButton = new Urho3D::Button(context_);
-    GetSubsystem<Urho3D::UI>()->GetRoot()->AddChild(solveButton);
-    solveButton->SetName("RandomizeButton");
-    solveButton->SetStyle("Button");
-    solveButton->SetSize(200, 100);
-    solveButton->SetPosition(70, 170);
-    SubscribeToEvent(solveButton, Urho3D::E_RELEASED, URHO3D_HANDLER(RubikApplication, HandleSolve));
 
-    auto *solveText = new Urho3D::Text(context_);
-    solveButton->AddChild(solveText);
-    solveText->SetName("RandomizeText");
-    solveText->SetText("SOLVE");
-    solveText->SetFont(cache->GetResource<Urho3D::Font>("Fonts/ALSSchlangesans-Bold.ttf"), 25);
-    solveText->SetColor({1, 1, 1});
-    solveText->SetAlignment(Urho3D::HA_CENTER, Urho3D::VA_CENTER);
+        auto *solveButton = new Urho3D::Button(context_);
+        randomizeButton->AddChild(solveButton);
+        solveButton->SetName("RandomizeButton");
+        solveButton->SetStyle("Button");
+        solveButton->SetSize(200, 100);
+        solveButton->SetPosition(0, 130);
+        SubscribeToEvent(solveButton, Urho3D::E_RELEASED, URHO3D_HANDLER(RubikApplication, HandleSolve));
+
+        auto *solveText = new Urho3D::Text(context_);
+        solveButton->AddChild(solveText);
+        solveText->SetName("RandomizeText");
+        solveText->SetText("SOLVE");
+        solveText->SetFont(cache->GetResource<Urho3D::Font>("Fonts/ALSSchlangesans-Bold.ttf"), 25);
+        solveText->SetColor({1, 1, 1});
+        solveText->SetAlignment(Urho3D::HA_CENTER, Urho3D::VA_CENTER);
+    }
+
+    {
+        auto *quitButton = new Urho3D::Button(context_);
+        GetSubsystem<Urho3D::UI>()->GetRoot()->AddChild(quitButton);
+        quitButton->SetName("QuitButton");
+        quitButton->SetStyle("Button");
+        quitButton->SetSize(200, 100);
+        quitButton->SetAlignment(Urho3D::HA_LEFT, Urho3D::VA_BOTTOM);
+        quitButton->SetPosition(70, -60);
+        SubscribeToEvent(quitButton, Urho3D::E_RELEASED, URHO3D_HANDLER(RubikApplication, HandleQuit));
+
+        auto *quitText = new Urho3D::Text(context_);
+        quitButton->AddChild(quitText);
+        quitText->SetName("QuitText");
+        quitText->SetText("QUIT");
+        quitText->SetFont(cache->GetResource<Urho3D::Font>("Fonts/ALSSchlangesans-Bold.ttf"), 25);
+        quitText->SetColor({1, 1, 1});
+        quitText->SetAlignment(Urho3D::HA_CENTER, Urho3D::VA_CENTER);
+    }
+
+    {
+        durationSlider_ = new Urho3D::Slider(context_);
+        GetSubsystem<Urho3D::UI>()->GetRoot()->AddChild(durationSlider_);
+        durationSlider_->SetName("DurationSlider");
+        durationSlider_->SetAlignment(Urho3D::HA_CENTER, Urho3D::VA_BOTTOM);
+        durationSlider_->SetPosition(0, -30);
+        durationSlider_->SetRange(0.8);
+        durationSlider_->SetStyleAuto();
+        durationSlider_->SetSize(1000, 100);
+
+    }
 
     {
         Urho3D::Node *lightNode = scene_->CreateChild();
         lightNode->SetDirection(Urho3D::Vector3::FORWARD);
         lightNode->Yaw(50);     // horizontal
         lightNode->Pitch(10);   // vertical
-        auto *light = lightNode->CreateComponent<Urho3D::Light>();
+        Urho3D::Light *light = lightNode->CreateComponent<Urho3D::Light>();
         light->SetLightType(Urho3D::LIGHT_DIRECTIONAL);
         light->SetBrightness(1.6);
         light->SetColor(Urho3D::Color(1.0, .6, 0.3, 1));
         light->SetCastShadows(true);
     }
-    // Create a blue point light
     {
-        auto *lightNode = scene_->CreateChild("Light");
+        Urho3D::Node *lightNode = scene_->CreateChild("Light");
         lightNode->SetPosition(Urho3D::Vector3(-10, 2, 5));
-        auto *light = lightNode->CreateComponent<Urho3D::Light>();
+        Urho3D::Light *light = lightNode->CreateComponent<Urho3D::Light>();
         light->SetLightType(Urho3D::LIGHT_POINT);
         light->SetRange(25);
         light->SetBrightness(1.7);
         light->SetColor(Urho3D::Color(0.5, .5, 1.0, 1));
         light->SetCastShadows(true);
     }
+
+
 
     auto *renderer = GetSubsystem<Urho3D::Renderer>();
     Urho3D::SharedPtr<Urho3D::Viewport> viewport(
@@ -116,6 +155,7 @@ void RubikApplication::Start() {
     SubscribeToEvent(Urho3D::E_BEGINFRAME, URHO3D_HANDLER(RubikApplication, HandleBeginFrame));
     SubscribeToEvent(Urho3D::E_KEYDOWN, URHO3D_HANDLER(RubikApplication, HandleKeyDown));
     SubscribeToEvent(Urho3D::E_UPDATE, URHO3D_HANDLER(RubikApplication, HandleUpdate));
+    SubscribeToEvent(Urho3D::E_DROPFILE, URHO3D_HANDLER(RubikApplication, HandleFile));
 }
 
 void RubikApplication::HandleKeyDown(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
@@ -183,6 +223,13 @@ void RubikApplication::HandleUpdate(Urho3D::StringHash eventType, Urho3D::Varian
     float MOVE_SPEED = 10.0f;
     float MOUSE_SENSITIVITY = 0.1f;
 
+    int value = (int) (10 * durationSlider_->GetValue());
+    if (value % 2 == 1)
+        ++value;
+    durationSlider_->SetValue(((float) value) / 10);
+
+    animator_->SetDuration(durationSlider_->GetValue());
+
     auto *input = GetSubsystem<Urho3D::Input>();
     if (input->GetKeyDown(Urho3D::KEY_SHIFT))
         MOUSE_SENSITIVITY *= 10;
@@ -210,7 +257,7 @@ void RubikApplication::HandleUpdate(Urho3D::StringHash eventType, Urho3D::Varian
 
             float direction = (animator_->Center() - cameraNode_->GetPosition()).DotProduct(translation);
 
-            if (distance >= minDistance || direction > 0)
+            if (distance >= minDistance || direction < 0)
                 cameraNode_->Translate(translation);
         }
 
@@ -219,10 +266,31 @@ void RubikApplication::HandleUpdate(Urho3D::StringHash eventType, Urho3D::Varian
 }
 
 void RubikApplication::HandleRandomize(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
-    Logic::Cube c(true);
+    Logic::Cube c(Logic::Cube::RandomScramble {});
     animator_->AddMoves(c.History());
 }
 
 void RubikApplication::HandleSolve(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
     animator_->Solve();
+}
+
+void RubikApplication::HandleQuit(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
+    engine_->Exit();
+}
+
+void RubikApplication::HandleFile(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
+    std::fstream file(eventData[Urho3D::DropFile::P_FILENAME].ToString().CString(), std::ios::in);
+    std::stringstream stream;
+
+    while (!file.eof()) {
+        std::string s;
+        file >> s;
+        stream << s;
+    }
+
+    try {
+        animator_->SetUnwrap(Logic::Cube{stream.str()});
+    } catch (std::invalid_argument &exception){
+        auto *messageBox = new Urho3D::MessageBox(context_, exception.what(), "Failed to import cube");
+    }
 }

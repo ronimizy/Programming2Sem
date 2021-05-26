@@ -7,54 +7,79 @@
 
 #include <vector>
 #include <fstream>
+#include <compare>
 
 #include "Moves.hpp"
 
 namespace Logic {
     class SuccessfulSequences {
-        std::vector<std::vector<std::vector<Moves>>> tensor;
+        struct Sequence {
+            std::vector<Moves> seq;
+            size_t priority = 0;
+
+            Sequence() {};
+
+            Sequence(const std::vector<Moves> &vector) : seq(vector) {};
+
+            Sequence &operator++() {
+                ++priority;
+                return *this;
+            }
+
+            const std::vector<Moves> operator*() { return seq; }
+
+            Moves &operator[](int i) { return seq.at(i); }
+
+            const Moves &operator[](int i) const { return seq.at(i); }
+
+            auto operator<=>(const Sequence &rhs) const { return priority <=> rhs.priority; }
+        };
+
+        std::vector<std::vector<Sequence>> tensor;
 
         constexpr static const char fileName[] = "GENETIC_CUBE.slns";
         static const int stateCount = 8;
-        static const int maxCount = 5000;
+        static const int maxCount = 2000;
 
     public:
+
         SuccessfulSequences() : tensor(stateCount) {
             std::fstream file(fileName, std::ios::in);
 
             if (file.is_open()) {
                 std::clog << "Loading successful sequences\n";
 
-                for (int i = 0; i < stateCount; ++i) {
-                    int sequencesCount;
-                    file >> sequencesCount;
+                for (int state = 0; state < stateCount; ++state) {
+                    int count;
+                    file >> count;
+                    tensor[state].resize(count);
 
-                    tensor[i].resize(sequencesCount);
+                    for (int sequence = 0; sequence < count; ++sequence) {
+                        int size;
+                        file >> size >> tensor[state][sequence].priority;
+                        tensor[state][sequence].seq.resize(size);
 
-                    for (int j = 0; j < sequencesCount; ++j) {
-                        int sequenceLength;
-                        file >> sequenceLength;
-
-                        tensor[i][j].resize(sequenceLength);
-
-                        for (int k = 0; k < sequenceLength; ++k)
-                            file >> tensor[i][j][k];
+                        for (int i = 0; i < size; ++i)
+                            file >> tensor[state][sequence][i];
                     }
                 }
 
                 file.close();
 
                 std::clog << "Successful sequences loaded\n";
+                for (int i = 0; i < stateCount; ++i) {
+                    std::clog << "\t[" << i << "] - (" << tensor[i].size() << ") max priority - " << tensor[i].front().priority << "\n";
+                }
+            } else {
+                std::clog << "Successful sequences file created\n";
             }
         }
 
         ~SuccessfulSequences() {
             std::clog << "Saving successful sequences\n";
 
-            for (auto state : tensor) {
-                std::sort(state.begin(), state.end(), [](const std::vector<Moves> &lhs, const std::vector<Moves> &rhs) {
-                    return lhs.size() < rhs.size();
-                });
+            for (auto &state : tensor) {
+                std::sort(state.begin(), state.end(), std::greater());
 
                 if (state.size() > maxCount)
                     state.resize(maxCount);
@@ -62,15 +87,13 @@ namespace Logic {
 
             std::fstream file(fileName, std::ios::out);
 
-            for (int i = 0; i < stateCount; ++i) {
-                file << tensor[i].size() << "\n";
+            for (int state = 0; state < stateCount; ++state) {
+                file << tensor[state].size() << ' ';
+                for (int sequence = 0; sequence < tensor[state].size(); ++sequence) {
+                    file << tensor[state][sequence].seq.size() << ' ' << tensor[state][sequence].priority << ' ';
 
-                for (int j = 0; j < tensor[i].size(); ++j) {
-                    file << tensor[i][j].size() << '\t';
-
-                    for (int k = 0; k < tensor[i][j].size(); ++k)
-                        file << tensor[i][j][k] << ' ';
-                    file << '\n';
+                    for (const auto move : tensor[state][sequence].seq)
+                        file << move << ' ';
                 }
             }
 
@@ -78,7 +101,7 @@ namespace Logic {
             std::clog << "Successful sequences saved\n";
         }
 
-        std::vector<std::vector<Moves>> &operator[](unsigned int i) { return tensor.at(i); }
+        std::vector<Sequence> &operator[](unsigned int i) { return tensor.at(i); }
     };
 }
 

@@ -5,33 +5,8 @@
 #ifndef GENETICCUBE_RUBIKAPPLICATION_HPP
 #define GENETICCUBE_RUBIKAPPLICATION_HPP
 
-#include <Urho3D/Core/CoreEvents.h>
-#include <Urho3D/Engine/Application.h>
-#include <Urho3D/Engine/Engine.h>
-#include <Urho3D/Engine/EngineDefs.h>
-#include <Urho3D/Input/Input.h>
-#include <Urho3D/Input/InputEvents.h>
-#include <Urho3D/Resource/ResourceCache.h>
-#include <Urho3D/Resource/XMLFile.h>
-#include <Urho3D/IO/Log.h>
-#include <Urho3D/UI/UI.h>
-#include <Urho3D/UI/Text.h>
-#include <Urho3D/UI/Font.h>
-#include <Urho3D/UI/Button.h>
-#include <Urho3D/UI/UIEvents.h>
-#include <Urho3D/Scene/Scene.h>
-#include <Urho3D/Scene/SceneEvents.h>
-#include <Urho3D/Graphics/Graphics.h>
-#include <Urho3D/Graphics/Camera.h>
-#include <Urho3D/Graphics/Geometry.h>
-#include <Urho3D/Graphics/Renderer.h>
-#include <Urho3D/Graphics/DebugRenderer.h>
-#include <Urho3D/Graphics/Octree.h>
-#include <Urho3D/Graphics/Light.h>
-#include <Urho3D/Graphics/Model.h>
-#include <Urho3D/Graphics/StaticModel.h>
-#include <Urho3D/Graphics/Material.h>
-#include <Urho3D/Graphics/Skybox.h>
+#include "Urho3DAll.hpp"
+#include <Urho3D/UI/Slider.h>
 
 #include "Cube.hpp"
 #include "CubeAnimator.hpp"
@@ -40,10 +15,11 @@ namespace Visualization {
     class RubikApplication : public Urho3D::Application {
         Urho3D::SharedPtr<Urho3D::Scene> scene_;
         Urho3D::SharedPtr<Urho3D::Node> cameraNode_;
+        Urho3D::SharedPtr<Urho3D::Slider> durationSlider_;
 
         CubeAnimator *animator_;
 
-        const float minDistance = 10.0f;
+        const float minDistance = 20.0f;
         Urho3D::Vector3 defaultCameraDirection;
 
     public:
@@ -64,6 +40,10 @@ namespace Visualization {
         void HandleRandomize(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
 
         void HandleSolve(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
+
+        void HandleQuit(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
+
+        void HandleFile(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
 
         ~RubikApplication() {
             delete animator_;

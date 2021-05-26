@@ -21,9 +21,9 @@ namespace Logic {
         //В данной реализации грань back не перевёрнута, то есть после "сборки"
         //развёртки, левый верхний угол будет иметь индекс 0 (так проще считать)
         /*
-         *     0            top
+         *     0             up
          *   4 1 5    left front right
-         *     2           bottom
+         *     2            down
          *     3            back
          *
          *          0 1 2
@@ -89,10 +89,15 @@ namespace Logic {
         std::vector<int> fitnessSolved(const std::vector<int> &) const;
 
     public:
-        Cube(bool randomized = false) {
-            if (randomized)
-                Randomize();
+        struct RandomScramble {};
+
+        Cube() {};
+
+        Cube(const RandomScramble &) {
+            Randomize();
         }
+
+        Cube(const std::string &);
 
         Cube(const Cube &);
 
@@ -137,11 +142,14 @@ namespace Logic {
             return *this;
         }
 
+        std::string ToUnwrapString() const;
+
         std::string ToString() const;
 
         Cube WithCleanHistory() const {
             Cube cube(*this);
             cube.ClearHistory();
+            cube.ClearSecondaryHistory();
             return cube;
         }
 

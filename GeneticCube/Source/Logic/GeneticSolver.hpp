@@ -17,7 +17,13 @@
 namespace Logic {
     enum OptimizationType {
         SpeedOptimized,
+        Balanced,
         LengthOptimized
+    };
+    enum LoggingMode {
+        Silent,
+        Descriptive,
+        Verbose
     };
 
     class GeneticSolver {
@@ -71,7 +77,7 @@ namespace Logic {
         Cube source;
         Cube scrambled;
 
-        bool verbose_;
+        LoggingMode loggingMode_;
         std::basic_ostream<char> &out_;
 
         unsigned int populationSize_;
@@ -106,7 +112,7 @@ namespace Logic {
         GeneticSolver(unsigned int populationSize, unsigned int eliteSize, unsigned int maxGenerationsCount,
                       unsigned int maxResetCount, unsigned int threadCount = 1,
                       OptimizationType optimizationType = SpeedOptimized,
-                      bool verbose = false, std::basic_ostream<char> &out = std::cout);
+                      LoggingMode loggingMode = Descriptive, std::basic_ostream<char> &out = std::cout);
 
         void SolveAsync(const Cube &cube, Cube &solution, bool &solving, bool &solved);
 

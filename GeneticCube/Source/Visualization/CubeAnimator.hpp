@@ -33,10 +33,12 @@ namespace Visualization {
         RotationConfiguration &configuration;
 
         float degreesLeft_;
+        float step_;
+        static constexpr const float baseDuration = 0.2f;
+        float singleDuration = 0.2f;
 
-        inline float step() {
-            return (float) configuration.direction /
-                   (configuration.duration() * (float) FPS);
+        inline void calculateStep() {
+            step_ = (float) configuration.direction / (singleDuration * FPS);
         };
 
         void setCurrentRotation(const RotationConfiguration &);
@@ -47,7 +49,12 @@ namespace Visualization {
         CubeAnimator(Cube *cube, int fps)
                 : visualCube(cube), FPS(fps), configuration(cube->Configuration()),
                   solver(Logic::GeneticSolver(1000, 20, 200, 10,
-                                              std::thread::hardware_concurrency(), Logic::SpeedOptimized, false)) {};
+                                              std::thread::hardware_concurrency(), Logic::Balanced,
+                                              Logic::Descriptive)) {};
+
+        ~CubeAnimator() {
+            delete visualCube;
+        }
 
         void RenderFrame();
 
@@ -65,9 +72,23 @@ namespace Visualization {
 
         void AddMoves(const std::vector<Moves> &);
 
-        inline bool IsHorizontal() { return configuration.dimension; }
+        inline bool IsHorizontal() const { return configuration.dimension; }
 
         inline Urho3D::Vector3 Center() { return visualCube->Center(); }
+
+        inline void SetDuration(float d) {
+            if (animating_)
+                return;
+
+            singleDuration = baseDuration + d;
+        }
+
+        inline float &GetDuration() { return singleDuration; }
+
+        inline void SetUnwrap(const Logic::Cube &cube) {
+            logicCube = cube;
+            visualCube->SetUnwrap(cube);
+        }
     };
 }
 

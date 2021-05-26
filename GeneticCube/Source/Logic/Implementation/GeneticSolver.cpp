@@ -13,9 +13,9 @@ using namespace Logic;
 GeneticSolver::GeneticSolver(unsigned int populationSize, unsigned int eliteSize, unsigned int maxGenerationsCount,
                              unsigned int maxResetCount, unsigned int threadCount,
                              OptimizationType optimizationType,
-                             bool verbose, std::basic_ostream<char> &out)
+                             LoggingMode loggingMode, std::basic_ostream<char> &out)
         : populationSize_(populationSize), eliteSize_(eliteSize), maxGenerationsCount_(maxGenerationsCount),
-          maxResetCount_(maxResetCount), optimizationType_(optimizationType), verbose_(verbose), out_(out),
+          maxResetCount_(maxResetCount), optimizationType_(optimizationType), loggingMode_(loggingMode), out_(out),
           threadCount_(threadCount), threadPool(threadCount) {
 }
 
@@ -44,10 +44,10 @@ Cube GeneticSolver::solve() {
             int solutionsCount = (int) (std::find_if(population.begin(), population.end(), Cube::NotSolved()) -
                                         population.begin());
 
-            if (verbose_) {
+            if (loggingMode_ == Verbose) {
                 logTopPerformers(generationsCount, population);
                 logSolutions(solutionsCount, population);
-            } else {
+            } else if (loggingMode_ == Descriptive) {
                 logProgressMultiThread(population.front(), generationsCount);
             }
 
@@ -60,7 +60,7 @@ Cube GeneticSolver::solve() {
             if (solutionsCount != 0) {
                 std::sort(population.begin(), population.begin() + solutionsCount, Cube::HistorySortLess());
 
-                if (optimizationType_ == SpeedOptimized)
+                if (optimizationType_ != LengthOptimized)
                     return population.front();
                 else {
                     solutions.push_back(population.front());
@@ -95,7 +95,7 @@ Cube GeneticSolver::Solve(const Cube &cube) {
 
     Cube solution;
 
-    if (verbose_) {
+    if (loggingMode_ == Verbose) {
         solution = solve();
     } else {
         std::vector<Cube> solutions;
@@ -111,7 +111,7 @@ Cube GeneticSolver::Solve(const Cube &cube) {
                 std::unique_lock<std::mutex> lock(mutex);
                 if (!result.History().empty() && !solutionFound) {
                     solutions.push_back(result);
-                    if (optimizationType_ == SpeedOptimized) {
+                    if (optimizationType_ != LengthOptimized) {
                         solutionFound = true;
                     }
                 }
@@ -135,20 +135,24 @@ Cube GeneticSolver::Solve(const Cube &cube) {
     if (solution.History().empty() && solution.Fitness() != Solved) {
         out_ << "No solution was found\n";
     } else {
-        out_ << "Found solution requires " << solution.History().size() << " moves.\n"
-             << "Optimizing...\n";
+        if (loggingMode_ != Silent) {
+            out_ << "Found solution requires " << solution.History().size() << " moves.\n"
+                 << "Optimizing...\n";
+        }
         solution = optimize(solution);
 
-        out_ << "Source fitness was: " << scrambled.Fitness() << '\n';
-        out_ << "Source scramble was:\n";
-        for (const Moves &move : scrambled.History())
-            out_ << moveToString(move) << ' ';
-        out_ << '\n';
+        if (loggingMode_ != Silent) {
+            out_ << "Source fitness was: " << scrambled.Fitness() << '\n';
+            out_ << "Source scramble was:\n";
+            for (const Moves &move : scrambled.History())
+                out_ << moveToString(move) << ' ';
+            out_ << '\n';
 
-        out_ << "Optimized solution requires " << solution.History().size() << " moves:\n";
-        for (const Moves &move : solution.History())
-            out_ << moveToString(move) << ' ';
-        out_ << '\n';
+            out_ << "Optimized solution requires " << solution.History().size() << " moves:\n";
+            for (const Moves &move : solution.History())
+                out_ << moveToString(move) << ' ';
+            out_ << '\n';
+        }
     }
 
     return solution;
@@ -168,6 +172,7 @@ void GeneticSolver::mutate(Cube &cube, std::vector<Cube> &population, std::mt199
     cube = population[parentPicker(generator)];
 
     int type = typePicker(generator);
+    int successfulPick = -1;
 
     switch (type) {
         case 1:
@@ -196,7 +201,8 @@ void GeneticSolver::mutate(Cube &cube, std::vector<Cube> &population, std::mt199
             cube.PerformMoves(fullRotations[3 * rotationPicker(generator) + directionPicker(generator)]);
             break;
         case 6:
-            cube.PerformMoves(successfulSequences[fitnessIndex][successfulPicker(generator)]);
+            successfulPick = successfulPicker(generator);
+            cube.PerformMoves(*successfulSequences[fitnessIndex][successfulPick]);
             break;
         default:
             cube.PerformMove(randomMove());
@@ -204,8 +210,12 @@ void GeneticSolver::mutate(Cube &cube, std::vector<Cube> &population, std::mt199
 
     if (cube.Fitness() / 100 > fitnessIndex) {
         std::unique_lock<std::mutex> lock(learningMutex);
-        successfulSequences[fitnessIndex].push_back(cube.SecondaryHistory());
-        cube.ClearSecondaryHistory();
+        if (successfulPick != -1)
+            ++successfulSequences[fitnessIndex][successfulPick];
+        else {
+            successfulSequences[fitnessIndex].emplace_back(cube.SecondaryHistory());
+            cube.ClearSecondaryHistory();
+        }
     }
 }
 
@@ -295,7 +305,11 @@ Cube GeneticSolver::optimize(const Cube &solution) {
         }
     }
 
-    out_ << "After removing mutually compensating moves found solution requires " << phaseOneCube.History().size() << " moves\n";
+    if (loggingMode_ != Silent)
+        out_ << "After removing mutually compensating moves found solution requires " << phaseOneCube.History().size() << " moves\n";
+
+    if (optimizationType_ == SpeedOptimized)
+        return phaseOneCube;
 
     Cube phaseTwoCube(phaseOneCube);
     Cube state(source);
@@ -353,7 +367,7 @@ Cube GeneticSolver::optimize(const Cube &solution) {
 
             if (cycle.coordinates.second != -1 &&
                 cycle.coordinates.second - cycle.coordinates.first > cycle.adjustment.size()) {
-                if (verbose_) {
+                if (loggingMode_ == Verbose) {
                     out_ << "State at position " << moveLeadToStateIndex << " repeated itself at position " << cycle.coordinates.second
                          << " eliminating " << cycle.eliminating() << " moves\n";
                 }
@@ -388,7 +402,7 @@ Cube GeneticSolver::optimize(const Cube &solution) {
         return lhs.coordinates.first < rhs.coordinates.first;
     });
 
-    if (verbose_) {
+    if (loggingMode_ == Verbose) {
         for (auto &cycle : cycles) {
             out_ << cycle.coordinates.first << ' ' << cycle.coordinates.second << "\n\t" << movesToString(cycle.sequence)
                  << "\n\t" << movesToString(cycle.adjustment) << '\n';
@@ -413,7 +427,7 @@ Cube GeneticSolver::optimize(const Cube &solution) {
                  << "\n\t" << movesToString(cycle.adjustment) << '\n';
         }
 
-        throw std::invalid_argument("");
+        return phaseOneCube;
     }
 
     return phaseTwoCube;

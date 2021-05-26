@@ -130,9 +130,28 @@ std::vector<Moves> movesFromString(const std::string &string) {
     return result;
 }
 
+std::vector<Moves> reverseMoves(const std::vector<Moves> &moves) {
+    std::vector<Moves> reversed;
+
+    for (const Moves &move : moves) {
+        if (move / 10 == 0) {
+            reversed.push_back(Moves(10 + move % 10));
+        } else if (move / 10 == 1) {
+            reversed.push_back(Moves(move % 10));
+        } else {
+            reversed.push_back(move);
+        }
+    }
+
+    return reversed;
+}
+
 std::istream &operator>>(std::istream &in, Moves &move) {
     int value;
     in >> value;
+
+    if (value / 10 > 2 || value % 10 > 8)
+        throw std::invalid_argument("Invalid move was provided");
 
     move = Moves(value);
 

@@ -14,10 +14,10 @@ void CubeAnimator::RenderFrame() {
         return;
 
     if (animating_) {
-        degreesLeft_ -= step();
+        degreesLeft_ -= step_;
         if (degreesLeft_ == 0) {
             animating_ = false;
-            visualCube->Rotate(step(), true);
+            visualCube->Rotate(step_, true);
             logicCube.PerformMove(configuration.ToMove());
 
             if (rotationQueue.empty() && solved_) {
@@ -25,7 +25,7 @@ void CubeAnimator::RenderFrame() {
                 solved_ = false;
             }
         } else
-            visualCube->Rotate(step(), false);
+            visualCube->Rotate(step_, false);
     } else if (!rotationQueue.empty()) {
         setCurrentRotation(rotationQueue.front());
         rotationQueue.pop();
@@ -53,6 +53,7 @@ void CubeAnimator::setCurrentRotation(const RotationConfiguration &conf) {
     configuration = conf;
     visualCube->Select();
     degreesLeft_ = configuration.direction;
+    calculateStep();
 }
 
 void CubeAnimator::addConfiguration(const RotationConfiguration &conf) {

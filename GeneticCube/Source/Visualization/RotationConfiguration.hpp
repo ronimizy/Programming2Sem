@@ -8,9 +8,6 @@
 #include "../Logic/Moves.hpp"
 
 class RotationConfiguration {
-
-    const float singleDuration = 0.2f;
-
 public:
     enum Orientation {
         Front = true,
@@ -36,11 +33,6 @@ public:
     Dimension dimension = Horizontal;
     Position position = Middle;
     Direction direction = QuarterTurn;
-
-
-    float duration() {
-        return (direction == HalfTurn || direction == CounterHalfTurn ? singleDuration * 1.5 : singleDuration);
-    }
 
     RotationConfiguration() noexcept {};
 

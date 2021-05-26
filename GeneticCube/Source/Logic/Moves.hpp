@@ -14,7 +14,7 @@
 enum Moves {
     Up =      0,  UpRev =     10, UpHalf =      20,
     Front =   1,  FrontRev =  11, FrontHalf =   21,
-    Down =    2,  DownRev =   12,  DownHalf =   22,
+    Down =    2,  DownRev =   12, DownHalf =    22,
     Back =    3,  BackRev =   13, BackHalf =    23,
     Left =    4,  LeftRev =   14, LeftHalf =    24,
     Right =   5,  RightRev =  15, RightHalf =   25,
@@ -41,6 +41,8 @@ std::string moveToString(const Moves &move);
 std::string movesToString(const std::vector<Moves> &moves);
 
 std::vector<Moves> movesFromString(const std::string &string);
+
+std::vector<Moves> reverseMoves(const std::vector<Moves> &);
 
 std::istream &operator>>(std::istream &, Moves &);
 

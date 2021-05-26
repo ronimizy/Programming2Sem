@@ -10,16 +10,16 @@
 namespace Logic::CubeIndicesData {
     namespace Rotation {
         //Индексы сторон после поворота: subFaceletsRotation[_][i] - сторона на i-той позиции
-        static const std::vector<std::vector<int>> faceletRotation = {
+        static const std::vector<std::vector<int>> faceletRotation {
                 {6, 3, 0, 7, 4, 1, 8, 5, 2},
                 {2, 5, 8, 1, 4, 7, 0, 3, 6},
                 {8, 7, 6, 5, 4, 3, 2, 1, 0}
         };
 
         //Грани с которых начинается поворот смежных сторон
-        static const std::vector<int> begins = {5, 5, 5, 4, 1, 3, 1, 1, 5};
+        static const std::vector<int> begins {5, 5, 5, 4, 1, 3, 1, 1, 5};
         //Грани в порядке обхода для перемещения при вращении
-        static const std::vector<std::vector<std::vector<int>>> subFaces = {
+        static const std::vector<std::vector<std::vector<int>>> subFaces {
                 {
                         {1, 4, 3, 5},
                         {3, 4, 1, 5}
@@ -58,7 +58,7 @@ namespace Logic::CubeIndicesData {
                 }
         };
         //Индексы соответствующих квадратов при вращении
-        static const std::vector<std::vector<std::vector<int>>> subFaceletsRotation = {
+        static const std::vector<std::vector<std::vector<int>>> subFaceletsRotation {
                 {
                         {},
                         {0, 1, 2},
@@ -135,7 +135,7 @@ namespace Logic::CubeIndicesData {
     }
 
     namespace Fitness {
-        static const std::vector<std::vector<int>> barsBases = {
+        static const std::vector<std::vector<int>> barsBases {
                 {-1, 1,  -1, 1,  1,  1},
                 {7,  -1, 1,  -1, 5,  3},
                 {-1, 7,  -1, 7,  7,  7},
@@ -144,7 +144,7 @@ namespace Logic::CubeIndicesData {
                 {5,  5,  5,  3,  -1, -1}
         };
 
-        static const std::vector<std::vector<std::vector<int>>> pyramidBases = {
+        static const std::vector<std::vector<std::vector<int>>> pyramidBases {
                 {
                         {},
                         {0, 2},
@@ -195,7 +195,7 @@ namespace Logic::CubeIndicesData {
                 }
         };
 
-        static const std::vector<std::vector<std::vector<int>>> bagEars = {
+        static const std::vector<std::vector<std::vector<int>>> bagEars {
                 {
                         {},
                         {3, 5},
@@ -246,7 +246,7 @@ namespace Logic::CubeIndicesData {
                 }
         };
 
-        static const std::vector<std::vector<int>> sidesTops = {
+        static const std::vector<std::vector<int>> sidesTops {
                 {-1, 7,  -1, 7,  7,  7},
                 {1,  -1, 7,  -1, 3,  5},
                 {-1, 1,  -1, 1,  1,  1},
@@ -255,7 +255,7 @@ namespace Logic::CubeIndicesData {
                 {3,  3,  3,  5,  -1, -1}
         };
 
-        static const std::vector<std::vector<std::vector<int>>> topCrossEars = {
+        static const std::vector<std::vector<std::vector<int>>> topCrossEars {
                 {
                         {},
                         {6, 8},
@@ -303,6 +303,81 @@ namespace Logic::CubeIndicesData {
                         {2, 8},
                         {0, 2, 6, 8},
                         {}
+                }
+        };
+    }
+
+    namespace Invariant {
+        static const std::vector<std::vector<std::pair<int, int>>> corners {
+                {
+                        {0, 8}, {5, 0}, {1, 2}
+                },
+                {
+                        {0, 6}, {1, 0}, {4,2}
+                },
+                {
+                        {0, 0}, {4, 0}, {3, 2}
+                },
+                {
+                        {0, 2}, {3, 0}, {5, 2}
+                },
+
+
+                {
+                        {2, 2}, {1, 8}, {5, 6}
+                },
+                {
+                        {2, 0}, {4, 8}, {1, 6}
+                },
+                {
+                        {2, 6}, {3, 8}, {4, 6}
+                },
+                {
+                        {2, 8}, {5, 8}, {3, 6}
+                }
+        };
+
+
+        static const std::vector<std::vector<std::pair<int, int>>> edges {
+                {
+                        {0, 1}, {3, 1}
+                },
+                {
+                        {1, 1}, {0, 7}
+                },
+                {
+                        {2, 1}, {1, 7}
+                },
+                {
+                        {3, 7}, {2, 7}
+                },
+
+
+                {
+                        {0, 3}, {4, 1}
+                },
+                {
+                        {5, 1}, {0, 5}
+                },
+                {
+                        {2, 5}, {5, 7}
+                },
+                {
+                        {4, 7}, {2, 3}
+                },
+
+
+                {
+                        {5, 5}, {3, 3}
+                },
+                {
+                        {1, 5}, {5, 3}
+                },
+                {
+                        {4, 5}, {1, 3}
+                },
+                {
+                        {3, 5}, {4, 3}
                 }
         };
     }

@@ -1,26 +1,55 @@
 #include <iostream>
+#include <thread>
+#include <chrono>
 
 #include "Source/Logic/GeneticSolver.hpp"
 #include "Source/Visualization/RubikApplication.hpp"
 
-//URHO3D_DEFINE_APPLICATION_MAIN(Visualization::RubikApplication)
+URHO3D_DEFINE_APPLICATION_MAIN(Visualization::RubikApplication)
 
+//int main() {
+//    Logic::GeneticSolver solver(1000, 20, 200, 10,
+//                                std::thread::hardware_concurrency() - 1, Logic::SpeedOptimized, Logic::Silent);
+//    size_t average = 0;
+//    int maxCount = 200;
+//    clock_t start = clock();
+//    for (int i = 1; i <= maxCount; ++i) {
+//        clock_t begin = clock();
 //
-int main() {
-    Logic::GeneticSolver solver(1000, 20, 200, 10,
-                                std::thread::hardware_concurrency() - 2, Logic::SpeedOptimized, false);
-    int i;
-    try {
-        for (i = 0; i < 50; ++i) {
-            Logic::Cube cube(true);
-            solver.Solve(cube);
-        }
-    } catch (std::exception &e) {
-        std::cerr << i;
-    }
+//        Logic::Cube cube(Logic::Cube::RandomScramble {});
+//        Logic::Cube solution = solver.Solve(cube);
+//
+//        clock_t end = clock();
+//
+//        average = (average * (i - 1) + (end - begin) / CLOCKS_PER_SEC) / i;
+//        std::cout << (end - start) / ((unsigned long long) CLOCKS_PER_SEC * 60 * 60) << ":" << ((end - start) / (CLOCKS_PER_SEC * 60)) % 60 << ":" << ((end - start) / CLOCKS_PER_SEC) % 60
+//                    << "| Cube " << i << "/" << maxCount << " is solved in " << (end - begin) / CLOCKS_PER_SEC
+//                  << " seconds, average time is " << average << " seconds - " << solution.History().size() << " moves\n";
+//    }
+//    std::cout << "Program was running for " << (float) (clock() - start) /  (float) (CLOCKS_PER_SEC * 60) << " minutes\n";
+//
+//    return 0;
+//}
 
-    return 0;
-}
+
+
+
+
+
+
+//int main() {
+//
+//    //Corner test
+//    //Logic::Cube c("WWWWWWWWRGGWGGGGGGYYYYYYYYYBBBBBBBBBOOOOOOOOOGRRRRRRRR");
+//
+//    //Edge test
+//    Logic::Cube c("WWRWWRWWYGGWGGWGGGYYYYYYYYWBBBBBBBBBOOOOOOOOORGGRRRRRR");
+//
+//    //Permutation test
+//    //Logic::Cube c("WWWWWGWWWGGGGGWGGGYYYYYYYYYBBBBBBBBBOOOOOOOOORRRRRRRRR");
+//
+//    return 0;
+//}
 
 //int main() {
 //    std::cout << movesToString(Logic::Cube(true).History());
