@@ -9,7 +9,7 @@
     <attribute name="Resize Border" value="6 6 6 6"/>
     <element style="HorizontalPanel">
         <attribute name="Min Size" value="60 16"/>
-        <attribute name="Max Size" value="2147483647 16"/>
+        <attribute name="Max Size" value="2147483647 30"/>
         <element type="Text">
             <attribute name="Name" value="TitleText"/>
             <attribute name="Text" value="Error"/>
@@ -31,12 +31,12 @@
     <element style="EditorSeparator"/>
     <element style="HorizontalPanel">
         <attribute name="Min Size" value="74 17"/>
-        <attribute name="Max Size" value="2147483647 17"/>
+        <attribute name="Max Size" value="2147483647 100"/>
         <element/>
         <element type="Button">
             <attribute name="Name" value="CancelButton"/>
             <attribute name="Min Size" value="80 17"/>
-            <attribute name="Max Size" value="80 17"/>
+            <attribute name="Max Size" value="80 100"/>
             <attribute name="Is Visible" value="false"/>
             <element type="Text">
                 <attribute name="Horiz Alignment" value="Center"/>
@@ -47,7 +47,7 @@
         <element type="Button">
             <attribute name="Name" value="OkButton"/>
             <attribute name="Min Size" value="80 17"/>
-            <attribute name="Max Size" value="80 17"/>
+            <attribute name="Max Size" value="80 100"/>
             <element type="Text">
                 <attribute name="Horiz Alignment" value="Center"/>
                 <attribute name="Vert Alignment" value="Center"/>

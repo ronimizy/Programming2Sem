@@ -87,6 +87,8 @@ namespace Visualization {
             logicCube = cube;
             visualCube->SetUnwrap(cube);
         }
+
+        inline std::string GetCubeString() { return logicCube.ToString(); }
     };
 }
 

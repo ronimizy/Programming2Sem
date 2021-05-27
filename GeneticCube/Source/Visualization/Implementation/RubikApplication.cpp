@@ -103,6 +103,22 @@ void RubikApplication::Start() {
         clearText->SetFont(cache->GetResource<Urho3D::Font>("Fonts/Arial.ttf"), 25);
         clearText->SetColor({1, 1, 1});
         clearText->SetAlignment(Urho3D::HA_CENTER, Urho3D::VA_CENTER);
+
+        saveButton_ = new Urho3D::Button(context_);
+        clearButton->AddChild(saveButton_);
+        saveButton_->SetName("SaveButton");
+        saveButton_->SetStyle("Button");
+        saveButton_->SetSize(250, 100);
+        saveButton_->SetPosition(0, 130);
+        SubscribeToEvent(saveButton_, Urho3D::E_RELEASED, URHO3D_HANDLER(RubikApplication, HandleSave));
+
+        auto *saveText = new Urho3D::Text(context_);
+        saveButton_->AddChild(saveText);
+        saveText->SetName("SaveText");
+        saveText->SetText("SAVE");
+        saveText->SetFont(cache->GetResource<Urho3D::Font>("Fonts/Arial.ttf"), 25);
+        saveText->SetColor({1, 1, 1});
+        saveText->SetAlignment(Urho3D::HA_CENTER, Urho3D::VA_CENTER);
     }
 
     {
@@ -151,14 +167,16 @@ void RubikApplication::Start() {
         helpText_->SetText(
                 ""
                 "Toggle mouse\n"
-                "Switch Horizontal/Vertical selection                       \n"
+                "Switch Horizontal/Vertical selection                              \n"
                 "Switch Front/Side selection\n"
                 "Rotate/Move\n"
                 "Reset camera angle\n"
                 "Toggle help\n"
                 "Zoom In/Out\n\n"
-                "To import configuration, drag and drop file with \n"
-                "continuous string of facelet colors onto the window");
+                "To select configuration file, drop it onto the window.\n"
+                "You will be prompted to load or save current configuration from/to it.\n"
+                "If you just want for it to be selected and save later, just close the alert\n"
+                "the save button will be enabled after that");
         helpText_->SetFont(cache->GetResource<Urho3D::Font>("Fonts/Arial.ttf"), 25);
         helpText_->SetColor({0, 0, 0});
         helpText_->SetAlignment(Urho3D::HA_RIGHT, Urho3D::VA_TOP);
@@ -204,15 +222,12 @@ void RubikApplication::Start() {
     SubscribeToEvent(Urho3D::E_BEGINFRAME, URHO3D_HANDLER(RubikApplication, HandleBeginFrame));
     SubscribeToEvent(Urho3D::E_KEYDOWN, URHO3D_HANDLER(RubikApplication, HandleKeyDown));
     SubscribeToEvent(Urho3D::E_UPDATE, URHO3D_HANDLER(RubikApplication, HandleUpdate));
-    SubscribeToEvent(Urho3D::E_DROPFILE, URHO3D_HANDLER(RubikApplication, HandleFile));
+    SubscribeToEvent(Urho3D::E_DROPFILE, URHO3D_HANDLER(RubikApplication, HandleFileDrop));
 }
 
 void RubikApplication::HandleKeyDown(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
     using namespace Urho3D;
     int key = eventData[KeyDown::P_KEY].GetInt();
-    if (key == KEY_ESCAPE)
-        engine_->Exit();
-
     auto *input = GetSubsystem<Input>();
     bool shift = input->GetKeyDown(Urho3D::KEY_SHIFT);
 
@@ -283,6 +298,8 @@ void RubikApplication::HandleUpdate(Urho3D::StringHash eventType, Urho3D::Varian
 
     animator_->SetDuration(durationSlider_->GetValue());
 
+    saveButton_->SetEnabled(!filePath.empty());
+
     auto *input = GetSubsystem<Urho3D::Input>();
     if (input->GetKeyDown(Urho3D::KEY_SHIFT))
         MOUSE_SENSITIVITY *= 10;
@@ -331,8 +348,64 @@ void RubikApplication::HandleQuit(Urho3D::StringHash eventType, Urho3D::VariantM
     engine_->Exit();
 }
 
-void RubikApplication::HandleFile(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
-    std::fstream file(eventData[Urho3D::DropFile::P_FILENAME].ToString().CString(), std::ios::in);
+void RubikApplication::HandleFileDrop(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
+    auto *messageBox = new Urho3D::MessageBox(context_, "Do you want to load state from file, or save to it?",
+                                              "Choose the file action");
+    auto *window = messageBox->GetWindow();
+    window->SetSize(400 * 3, 83 * 3);
+    auto *title = window->GetChildDynamicCast<Urho3D::Text>("TitleText", true);
+    title->SetFont(GetSubsystem<Urho3D::ResourceCache>()->GetResource<Urho3D::Font>("Fonts/Arial.ttf"), 25);
+
+    auto *message = window->GetChildDynamicCast<Urho3D::Text>("MessageText", true);
+    message->SetFont(GetSubsystem<Urho3D::ResourceCache>()->GetResource<Urho3D::Font>("Fonts/Arial.ttf"), 25);
+//
+//    auto titlePanel = title->GetParent();
+//    titlePanel->SetMaxSize(2147483647, 30);
+//
+//    auto messagePanel = title->GetParent();
+//    messagePanel->SetMaxSize(2147483647, 30);
+
+
+    auto *saveButton = window->GetChildDynamicCast<Urho3D::Button>("OkButton", true);
+    auto *loadButton = window->GetChildDynamicCast<Urho3D::Button>("CancelButton", true);
+    auto *closeButton = window->GetChildDynamicCast<Urho3D::Button>("CloseButton", true);
+
+    auto *buttonPanel = loadButton->GetParent();
+    buttonPanel->SetMaxSize(window->GetSize().x_ - 80, 100);
+
+    ((Urho3D::Text *) saveButton->GetChildren().Front().Get())->SetText("Save");
+    ((Urho3D::Text *) saveButton->GetChildren().Front().Get())->SetFont(
+            GetSubsystem<Urho3D::ResourceCache>()->GetResource<Urho3D::Font>("Fonts/Arial.ttf"), 25);
+    saveButton->SetMaxSize(100, 50);
+    saveButton->SetFocus(false);
+
+    ((Urho3D::Text *) loadButton->GetChildren().Front().Get())->SetText("Load");
+    ((Urho3D::Text *) loadButton->GetChildren().Front().Get())->SetFont(
+            GetSubsystem<Urho3D::ResourceCache>()->GetResource<Urho3D::Font>("Fonts/Arial.ttf"), 25);
+    loadButton->SetMaxSize(100, 50);
+    loadButton->SetVisible(true);
+    loadButton->SetPosition(loadButton->GetPosition().x_ - 60, loadButton->GetPosition().y_);
+
+
+    filePath = eventData[Urho3D::DropFile::P_FILENAME].ToString().CString();
+
+    SubscribeToEvent(saveButton, Urho3D::E_PRESSED, URHO3D_HANDLER(RubikApplication, HandleSave));
+    SubscribeToEvent(loadButton, Urho3D::E_PRESSED, URHO3D_HANDLER(RubikApplication, HandleLoad));
+    SubscribeToEvent(closeButton, Urho3D::E_PRESSED, URHO3D_HANDLER(RubikApplication, HandleClearFilePath));
+}
+
+void RubikApplication::HandleClear(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
+    animator_->SetUnwrap(Logic::Cube {});
+}
+
+void RubikApplication::HandleSave(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
+    std::fstream file(filePath, std::ios::out);
+
+    file << animator_->GetCubeString();
+}
+
+void RubikApplication::HandleLoad(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
+    std::fstream file(filePath, std::ios::in);
     std::stringstream stream;
 
     while (!file.eof()) {
@@ -345,9 +418,15 @@ void RubikApplication::HandleFile(Urho3D::StringHash eventType, Urho3D::VariantM
         animator_->SetUnwrap(Logic::Cube {stream.str()});
     } catch (std::invalid_argument &exception) {
         auto *messageBox = new Urho3D::MessageBox(context_, exception.what(), "Failed to import cube");
+        auto *window = messageBox->GetWindow();
+        window->SetSize(400 * 3, 83 * 3);
+        window->GetChildDynamicCast<Urho3D::Text>("TitleText", true)->SetFont(
+                GetSubsystem<Urho3D::ResourceCache>()->GetResource<Urho3D::Font>("Fonts/Arial.ttf"), 25);
+        window->GetChildDynamicCast<Urho3D::Text>("MessageText", true)->SetFont(
+                GetSubsystem<Urho3D::ResourceCache>()->GetResource<Urho3D::Font>("Fonts/Arial.ttf"), 25);
     }
 }
 
-void RubikApplication::HandleClear(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
-    animator_->SetUnwrap(Logic::Cube{});
+void RubikApplication::HandleClearFilePath(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
+    filePath = "";
 }

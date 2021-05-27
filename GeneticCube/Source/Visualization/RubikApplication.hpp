@@ -17,11 +17,14 @@ namespace Visualization {
         Urho3D::SharedPtr<Urho3D::Node> cameraNode_;
         Urho3D::SharedPtr<Urho3D::Slider> durationSlider_;
         Urho3D::SharedPtr<Urho3D::Text> helpText_;
+        Urho3D::SharedPtr<Urho3D::Button> saveButton_;
 
         CubeAnimator *animator_;
 
         const float minDistance = 20.0f;
         Urho3D::Vector3 defaultCameraDirection;
+
+        std::string filePath;
 
     public:
         RubikApplication(Urho3D::Context *context)
@@ -44,7 +47,13 @@ namespace Visualization {
 
         void HandleQuit(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
 
-        void HandleFile(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
+        void HandleFileDrop(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
+
+        void HandleSave(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
+
+        void HandleLoad(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
+
+        void HandleClearFilePath(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
 
         void HandleClear(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
 
