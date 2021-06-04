@@ -56,7 +56,7 @@ public:
     }
 
 
-    RotationConfiguration &operator=(const Logic::Moves &rhs) {
+    RotationConfiguration &operator=(const Logic::Move &rhs) {
         RotationConfiguration r(rhs);
         orientation = r.orientation;
         dimension = r.dimension;
@@ -66,18 +66,18 @@ public:
         return *this;
     }
 
-    RotationConfiguration(Logic::Moves move) {
-        if (move / 10 == 0) {
-            if (move % 10 == Logic::Moves::Right ||
-                move % 10 == Logic::Moves::Back ||
-                move % 10 == Logic::Moves::Up)
+    RotationConfiguration(Logic::Move move) {
+        if (move.direction == Logic::Move::Clockwise) {
+            if (move.face == Logic::Move::Right ||
+                move.face == Logic::Move::Back ||
+                move.face == Logic::Move::Up)
                 direction = QuarterTurn;
             else
                 direction = CounterQuarterTurn;
-        } else if (move / 10 == 1) {
-            if (move % 10 == Logic::Moves::Right ||
-                move % 10 == Logic::Moves::Back ||
-                move % 10 == Logic::Moves::Up)
+        } else if (move.direction == Logic::Move::CounterClockwise) {
+            if (move.face == Logic::Move::Right ||
+                move.face == Logic::Move::Back ||
+                move.face == Logic::Move::Up)
                 direction = CounterQuarterTurn;
             else
                 direction = QuarterTurn;
@@ -85,69 +85,69 @@ public:
             direction = HalfTurn;
         }
 
-        if (move % 10 == Logic::Moves::Up ||
-            move % 10 == Logic::Moves::Edge ||
-            move % 10 == Logic::Moves::Down)
+        if (move.face == Logic::Move::Up ||
+            move.face == Logic::Move::Edge ||
+            move.face == Logic::Move::Down)
             dimension = Dimension::Horizontal;
         else
             dimension = Dimension::Vertical;
 
-        if (move % 10 == Logic::Moves::Left ||
-            move % 10 == Logic::Moves::Middle ||
-            move % 10 == Logic::Moves::Right)
+        if (move.face == Logic::Move::Left ||
+            move.face == Logic::Move::Middle ||
+            move.face == Logic::Move::Right)
             orientation = Orientation::Front;
         else
             orientation = Orientation::Side;
 
-        if (move % 10 == Logic::Moves::Left ||
-            move % 10 == Logic::Moves::Front ||
-            move % 10 == Logic::Moves::Down)
+        if (move.face == Logic::Move::Left ||
+            move.face == Logic::Move::Front ||
+            move.face == Logic::Move::Down)
             position = Position::Close;
-        else if (move % 10 == Logic::Moves::Middle ||
-                 move % 10 == Logic::Moves::Side ||
-                 move % 10 == Logic::Moves::Edge)
+        else if (move.face == Logic::Move::Middle ||
+                 move.face == Logic::Move::Side ||
+                 move.face == Logic::Move::Edge)
             position = Position::Middle;
         else
             position = Position::Far;
     }
 
-    Logic::Moves ToMove() {
-        int type;
-        int face;
+    Logic::Move ToMove() {
+        Logic::Move::Direction type;
+        Logic::Move::Face face;
 
         if (direction == QuarterTurn || direction == CounterQuarterTurn) {
             if (position != Far)
-                type = (direction == QuarterTurn ? 1 : 0);
+                type = (direction == QuarterTurn ? Logic::Move::CounterClockwise : Logic::Move::Clockwise);
             else
-                type = (direction == QuarterTurn ? 0 : 1);
+                type = (direction == QuarterTurn ? Logic::Move::Clockwise : Logic::Move::CounterClockwise);
         } else {
-            type = 2;
+            type = Logic::Move::HalfTurn;
         }
 
         if (position == Close) {
             if (dimension == Horizontal)
-                face = Logic::Moves::Down;
+                face = Logic::Move::Down;
             else if (orientation == Front)
-                face = Logic::Moves::Left;
+                face = Logic::Move::Left;
             else
-                face = Logic::Moves::Front;
+                face = Logic::Move::Front;
         } else if (position == Middle) {
             if (dimension == Horizontal)
-                face = Logic::Moves::Edge;
+                face = Logic::Move::Edge;
             else if (orientation == Front)
-                face = Logic::Moves::Middle;
+                face = Logic::Move::Middle;
             else
-                face = Logic::Moves::Side;
+                face = Logic::Move::Side;
         } else {
             if (dimension == Horizontal)
-                face = Logic::Moves::Up;
+                face = Logic::Move::Up;
             else if (orientation == Front)
-                face = Logic::Moves::Right;
+                face = Logic::Move::Right;
             else
-                face = Logic::Moves::Back;
+                face = Logic::Move::Back;
         }
 
-        return Logic::Moves(10 * type + face);
+        return {type, face};
     }
 };
 

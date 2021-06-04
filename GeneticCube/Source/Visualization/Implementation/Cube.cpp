@@ -46,7 +46,7 @@ Cube::Cube(Urho3D::SharedPtr<Urho3D::Scene> &scene, Urho3D::ResourceCache *cache
         }
     }
 
-    SetUnwrap(Logic::Cube{});
+    SetUnwrap(Logic::Cube {});
     Select();
 }
 

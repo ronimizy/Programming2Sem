@@ -5,7 +5,7 @@
 #ifndef GENETICCUBE_GENETICSOLVER_HPP
 #define GENETICCUBE_GENETICSOLVER_HPP
 
-#include "Cube.hpp"
+#include "CubeIndividual.hpp"
 #include "../Utility/ThreadPool.hpp"
 #include "SuccessfulSequences.hpp"
 
@@ -27,46 +27,44 @@ namespace Logic {
     };
 
     class GeneticSolver {
-        struct SolutionCycle;
-
-        const std::vector<std::vector<Moves>> permutations {
-                {FR, LR, BR, RR, UR, R,  UR, B,  L,  F,  R,  U,  RR, U},
-                {F,  R,  B,  L,  U,  LR, U,  BR, RR, FR, LR, UR, L,  UR},
-                {U2, B,  U2, BR, R2, F,  RR, FR, U2, FR, U2, F,  RR},
-                {U2, R,  U2, RR, F2, L,  FR, LR, U2, LR, U2, L,  FR},
-                {UR, B2, D2, LR, F2, D2, B2, RR, UR},
-                {U,  B2, D2, R,  F2, D2, B2, L,  U},
-                {DR, RR, D,  R2, UR, R,  B2, L,  UR, LR, B2, U,  R2},
-                {D,  L,  DR, L2, U,  LR, B2, RR, U,  R,  B2, UR, L2},
-                {RR, U,  LR, U2, R,  UR, L,  RR, U,  LR, U2, R,  UR, L,  UR},
-                {L,  UR, R,  U2, LR, U,  RR, L,  UR, R,  U2, LR, U,  RR, U},
-                {FR, U,  B,  UR, F,  U,  BR, UR},
-                {F,  UR, BR, U,  FR, UR, B,  U},
-                {LR, U2, L,  RR, F2, R},
-                {RR, U2, R,  LR, B2, L}
+        const std::vector<std::vector<Move>> permutations {
+                {Moves::FR, Moves::LR, Moves::BR, Moves::RR, Moves::UR, Moves::R,  Moves::UR, Moves::B,  Moves::L,  Moves::F,  Moves::R,  Moves::U,  Moves::RR, Moves::U},
+                {Moves::F,  Moves::R,  Moves::B,  Moves::L,  Moves::U,  Moves::LR, Moves::U,  Moves::BR, Moves::RR, Moves::FR, Moves::LR, Moves::UR, Moves::L,  Moves::UR},
+                {Moves::U2, Moves::B,  Moves::U2, Moves::BR, Moves::R2, Moves::F,  Moves::RR, Moves::FR, Moves::U2, Moves::FR, Moves::U2, Moves::F,  Moves::RR},
+                {Moves::U2, Moves::R,  Moves::U2, Moves::RR, Moves::F2, Moves::L,  Moves::FR, Moves::LR, Moves::U2, Moves::LR, Moves::U2, Moves::L,  Moves::FR},
+                {Moves::RR, Moves::U,  Moves::LR, Moves::U2, Moves::R,  Moves::UR, Moves::L,  Moves::RR, Moves::U,  Moves::LR, Moves::U2, Moves::R,  Moves::UR, Moves::L,  Moves::UR},
+                {Moves::L,  Moves::UR, Moves::R,  Moves::U2, Moves::LR, Moves::U,  Moves::RR, Moves::L,  Moves::UR, Moves::R,  Moves::U2, Moves::LR, Moves::U,  Moves::RR, Moves::U},
+                {Moves::DR, Moves::RR, Moves::D,  Moves::R2, Moves::UR, Moves::R,  Moves::B2, Moves::L,  Moves::UR, Moves::LR, Moves::B2, Moves::U,  Moves::R2},
+                {Moves::D,  Moves::L,  Moves::DR, Moves::L2, Moves::U,  Moves::LR, Moves::B2, Moves::RR, Moves::U,  Moves::R,  Moves::B2, Moves::UR, Moves::L2},
+                {Moves::UR, Moves::B2, Moves::D2, Moves::LR, Moves::F2, Moves::D2, Moves::B2, Moves::RR, Moves::UR},
+                {Moves::U,  Moves::B2, Moves::D2, Moves::R,  Moves::F2, Moves::D2, Moves::B2, Moves::L,  Moves::U},
+                {Moves::FR, Moves::U,  Moves::B,  Moves::UR, Moves::F,  Moves::U,  Moves::BR, Moves::UR},
+                {Moves::F,  Moves::UR, Moves::BR, Moves::U,  Moves::FR, Moves::UR, Moves::B,  Moves::U},
+                {Moves::LR, Moves::U2, Moves::L,  Moves::RR, Moves::F2, Moves::R},
+                {Moves::RR, Moves::U2, Moves::R,  Moves::LR, Moves::B2, Moves::L}
         };
-        const std::vector<std::vector<Moves>> fullRotations {
+        const std::vector<std::vector<Move>> fullRotations {
                 //Поворот вокруг оси x по часовой стрелке
-                {LR, MR, R},
+                {Moves::LR, Moves::MR, Moves::R},
                 //Поворот вокруг оси x против часовой стрелке
-                {L,  M,  RR},
+                {Moves::L,  Moves::M,  Moves::RR},
                 //Поворот вокруг оси x на 180 градусов
-                {L2, M2, R2},
+                {Moves::L2, Moves::M2, Moves::R2},
 
                 //Поворот вокруг оси y по часовой стрелке
-                {U,  ER, DR},
+                {Moves::U,  Moves::ER, Moves::DR},
                 //Поворот вокруг оси y против часовой стрелки
-                {UR, E,  D},
+                {Moves::UR, Moves::E,  Moves::D},
                 //Поворот вокруг оси y на 180 градусов
-                {U2, E2, D2}
+                {Moves::U2, Moves::E2, Moves::D2}
         };
-        const std::vector<std::vector<Moves>> orientations {
+        const std::vector<std::vector<Move>> orientations {
                 //Поворот вокруг оси z по часовой стрелке
-                {F,  S,  BR},
+                {Moves::F,  Moves::S,  Moves::BR},
                 //Поворот вокруг оси z против часовой стрелки
-                {FR, SR, B},
+                {Moves::FR, Moves::SR, Moves::B},
                 //Поворот вокруг оси z на 180 градусов
-                {F2, S2, B2}
+                {Moves::F2, Moves::S2, Moves::B2}
         };
 
         std::mutex learningMutex;
@@ -74,8 +72,8 @@ namespace Logic {
 
         bool solutionFound = false;
 
-        Cube source;
-        Cube scrambled;
+        CubeIndividual source;
+        CubeIndividual scrambled;
 
         LoggingMode loggingMode_;
         std::basic_ostream<char> &out_;
@@ -90,33 +88,32 @@ namespace Logic {
         std::mutex logMutex;
         Utility::ThreadPool threadPool;
 
-        void initPopulation(std::vector<Cube> &) const;
+        void initPopulation(std::vector<CubeIndividual> &) const;
 
-        void mutate(Cube &cube, std::vector<Cube> &population, std::mt19937 &generator);
+        void mutate(CubeIndividual &cube, std::vector<CubeIndividual> &population, std::mt19937 &generator);
 
-        void logTopPerformers(const unsigned int &generationsCount, const std::vector<Cube> &population) const;
+        void logTopPerformers(const unsigned int &generationsCount, const std::vector<CubeIndividual> &population) const;
 
-        void logSolutions(const unsigned int &solutionsCount, const std::vector<Cube> &population) const;
+        void logSolutions(const unsigned int &solutionsCount, const std::vector<CubeIndividual> &population) const;
 
-        void logProgressMultiThread(const Cube &population, unsigned int generationNumber);
+        void logProgressMultiThread(const CubeIndividual &population, unsigned int generationNumber);
 
-        void printCubes(unsigned int upTo, const std::vector<Cube> &population) const;
+        void printCubes(unsigned int upTo, const std::vector<CubeIndividual> &population) const;
 
 
-        Cube solve();
-
+        CubeIndividual solve();
+        CubeIndividual optimize(const CubeIndividual &);
     public:
 
-        Cube optimize(const Cube &);
 
         GeneticSolver(unsigned int populationSize, unsigned int eliteSize, unsigned int maxGenerationsCount,
                       unsigned int maxResetCount, unsigned int threadCount = 1,
                       OptimizationType optimizationType = SpeedOptimized,
                       LoggingMode loggingMode = Descriptive, std::basic_ostream<char> &out = std::cout);
 
-        void SolveAsync(const Cube &cube, Cube &solution, bool &solving, bool &solved);
+        void SolveAsync(const CubeIndividual &cube, CubeIndividual &solution, bool &solving, bool &solved);
 
-        Cube Solve(const Cube &cube);
+        CubeIndividual Solve(const CubeIndividual &cube);
     };
 }
 

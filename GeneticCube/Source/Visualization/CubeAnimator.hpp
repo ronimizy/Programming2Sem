@@ -6,7 +6,6 @@
 #define GENETICCUBE_CUBEANIMATOR_HPP
 
 #include "Cube.hpp"
-#include "../Logic/Cube.hpp"
 #include "../Logic/GeneticSolver.hpp"
 
 #include <queue>
@@ -19,7 +18,7 @@ namespace Visualization {
         std::queue<RotationConfiguration> rotationQueue;
 
         Visualization::Cube *visualCube;
-        Logic::Cube logicCube;
+        Logic::CubeIndividual logicCube;
 
         Logic::GeneticSolver solver;
 
@@ -28,7 +27,7 @@ namespace Visualization {
 
         bool solving_ = false;
         bool solved_ = false;
-        Logic::Cube solution;
+        Logic::CubeIndividual solution;
 
         RotationConfiguration &configuration;
 
@@ -48,8 +47,8 @@ namespace Visualization {
     public:
         CubeAnimator(Cube *cube, int fps)
                 : visualCube(cube), FPS(fps), configuration(cube->Configuration()),
-                  solver(Logic::GeneticSolver(1000, 20, 200, 10,
-                                              std::thread::hardware_concurrency() - 1, Logic::Balanced,
+                  solver(Logic::GeneticSolver(1000, 20, 150, 10,
+                                              std::thread::hardware_concurrency() - 1, Logic::SpeedOptimized,
                                               Logic::Descriptive)) {};
 
         ~CubeAnimator() {
@@ -62,15 +61,16 @@ namespace Visualization {
 
         void AddRotation(RotationConfiguration::Direction direction);
 
+
         bool TryMovePosition(long at);
 
         bool TryFlipOrientation();
 
         bool TryFlipDimension();
 
-        void AddMove(Logic::Moves);
+        void AddMove(Logic::Move);
 
-        void AddMoves(const std::vector<Logic::Moves> &);
+        void AddMoves(const std::vector<Logic::Move> &);
 
         inline bool IsHorizontal() const { return configuration.dimension; }
 
@@ -80,7 +80,7 @@ namespace Visualization {
 
         inline float &GetDuration() { return singleDuration; }
 
-        inline void SetUnwrap(const Logic::Cube &cube) {
+        inline void SetUnwrap(const Logic::CubeIndividual &cube) {
             if (animating_ || solving_)
                 return;
 

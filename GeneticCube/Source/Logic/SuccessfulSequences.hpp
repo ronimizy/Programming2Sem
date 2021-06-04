@@ -14,23 +14,23 @@
 namespace Logic {
     class SuccessfulSequences {
         struct Sequence {
-            std::vector<Moves> seq;
+            std::vector<Move> seq;
             size_t priority = 0;
 
             Sequence() {};
 
-            Sequence(const std::vector<Moves> &vector) : seq(vector) {};
+            Sequence(const std::vector<Move> &vector) : seq(vector) {};
 
             Sequence &operator++() {
                 ++priority;
                 return *this;
             }
 
-            const std::vector<Moves> operator*() { return seq; }
+            const std::vector<Move> operator*() { return seq; }
 
-            Moves &operator[](int i) { return seq.at(i); }
+            Move &operator[](int i) { return seq.at(i); }
 
-            const Moves &operator[](int i) const { return seq.at(i); }
+            const Move &operator[](int i) const { return seq.at(i); }
 
             auto operator<=>(const Sequence &rhs) const { return priority <=> rhs.priority; }
         };
@@ -68,7 +68,8 @@ namespace Logic {
 
                 std::clog << "Successful sequences loaded\n";
                 for (int i = 0; i < stateCount; ++i) {
-                    std::clog << "\t[" << i << "] - (" << tensor[i].size() << ") max priority - " << tensor[i].front().priority << "\n";
+                    std::clog << "\t[" << i << "] - (" << tensor[i].size() << ") max priority - "
+                              << tensor[i].front().priority << "\n";
                 }
             } else {
                 std::clog << "Successful sequences file created\n";
@@ -89,10 +90,10 @@ namespace Logic {
 
             for (int state = 0; state < stateCount; ++state) {
                 file << tensor[state].size() << ' ';
-                for (int sequence = 0; sequence < tensor[state].size(); ++sequence) {
-                    file << tensor[state][sequence].seq.size() << ' ' << tensor[state][sequence].priority << ' ';
+                for (auto & sequence : tensor[state]) {
+                    file << sequence.seq.size() << ' ' << sequence.priority << ' ';
 
-                    for (const auto move : tensor[state][sequence].seq)
+                    for (const auto move : sequence.seq)
                         file << move << ' ';
                 }
             }

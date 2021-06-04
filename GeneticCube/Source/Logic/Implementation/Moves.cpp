@@ -7,20 +7,18 @@
 
 using namespace Logic;
 
-Moves randomMove() {
-    static std::random_device device;
-    static std::mt19937 mt(device());
+Move randomMove() {
+    static std::mt19937 generator(std::random_device{}());
+    static std::uniform_int_distribution<Move::Direction> directionPicker(Logic::Move::Clockwise, Logic::Move::HalfTurn);
+    static std::uniform_int_distribution<Move::Face> facePicker(Logic::Move::Up, Logic::Move::Side);
 
-    static std::uniform_int_distribution<int> directionPicker(0, 2);
-    static std::uniform_int_distribution<int> sidePicker(0, 8);
-
-    return Moves(directionPicker(device) * 10 + sidePicker(device));
+    return Move(directionPicker(generator), facePicker(generator));
 }
 
-std::string moveToString(const Moves &move) {
+std::string moveToString(const Move &move) {
     std::string answer;
 
-    switch (move % 10) {
+    switch (move.face) {
         case 0:
             answer += "U";
             break;
@@ -50,11 +48,13 @@ std::string moveToString(const Moves &move) {
             break;
     }
 
-    switch (move / 10) {
-        case 1:
+    switch (move.direction) {
+        case Logic::Move::Clockwise:
+            break;
+        case Logic::Move::CounterClockwise:
             answer += "'";
             break;
-        case 2:
+        case Logic::Move::HalfTurn:
             answer += "2";
             break;
     }
@@ -62,52 +62,52 @@ std::string moveToString(const Moves &move) {
     return answer;
 }
 
-std::string movesToString(const std::vector<Moves> &moves) {
+std::string movesToString(const std::vector<Move> &moves) {
     std::string answer;
 
-    for (const Moves &move : moves) {
+    for (const Move &move : moves) {
         answer += moveToString(move) + ' ';
     }
 
     return answer;
 }
 
-std::vector<Moves> movesFromString(const std::string &string) {
+std::vector<Move> movesFromString(const std::string &string) {
     std::stringstream stream(string);
-    std::vector<Moves> result;
+    std::vector<Move> result;
 
     std::string move;
     while (stream >> move) {
-        int type;
-        int direction = 0;
+        Move::Face face;
+        Move::Direction direction = Logic::Move::Clockwise;
 
         switch (move[0]) {
             case 'U':
-                type = 0;
+                face = Logic::Move::Up;
                 break;
             case 'F':
-                type = 1;
+                face = Logic::Move::Front;
                 break;
             case 'D':
-                type = 2;
+                face = Logic::Move::Down;
                 break;
             case 'B':
-                type = 3;
+                face = Logic::Move::Back;
                 break;
             case 'L':
-                type = 4;
+                face = Logic::Move::Left;
                 break;
             case 'R':
-                type = 5;
+                face = Logic::Move::Right;
                 break;
             case 'M':
-                type = 6;
+                face = Logic::Move::Middle;
                 break;
             case 'E':
-                type = 7;
+                face = Logic::Move::Edge;
                 break;
             case 'S':
-                type = 8;
+                face = Logic::Move::Side;
                 break;
             default:
                 throw std::invalid_argument(move + " - not a valid command");
@@ -116,46 +116,34 @@ std::vector<Moves> movesFromString(const std::string &string) {
         if (move.size() > 1) {
             switch (move[1]) {
                 case '\'':
-                    direction = 1;
+                    direction = Logic::Move::CounterClockwise;
                     break;
                 case '2':
-                    direction = 2;
+                    direction = Logic::Move::HalfTurn;
                     break;
                 default:
                     throw std::invalid_argument(move + " - not a valid command");
             }
         }
 
-        result.push_back(Moves(10 * direction + type));
+        result.emplace_back(direction, face);
     }
 
     return result;
 }
 
-std::vector<Moves> reverseMoves(const std::vector<Moves> &moves) {
-    std::vector<Moves> reversed;
-
-    for (const Moves &move : moves) {
-        if (move / 10 == 0) {
-            reversed.push_back(Moves(10 + move % 10));
-        } else if (move / 10 == 1) {
-            reversed.push_back(Moves(move % 10));
-        } else {
-            reversed.push_back(move);
-        }
-    }
-
-    return reversed;
-}
-
-std::istream &operator>>(std::istream &in, Moves &move) {
+std::istream &operator>>(std::istream &in, Move &move) {
     int value;
     in >> value;
 
     if (value / 10 > 2 || value % 10 > 8)
         throw std::invalid_argument("Invalid move was provided");
 
-    move = Moves(value);
+    move = Move(static_cast<Move::Direction>(value / 10), static_cast<Move::Face>(value % 10));
 
     return in;
+}
+
+std::ostream &operator<<(std::ostream &out, const Logic::Move &move) {
+    return out << moveToString(move);
 }

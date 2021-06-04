@@ -19,7 +19,7 @@ GeneticSolver::GeneticSolver(unsigned int populationSize, unsigned int eliteSize
           threadCount_(threadCount), threadPool(threadCount) {
 }
 
-void GeneticSolver::initPopulation(std::vector<Cube> &population) const {
+void GeneticSolver::initPopulation(std::vector<CubeIndividual> &population) const {
     for (auto &cube : population) {
         cube = source;
         cube.PerformMove(randomMove());
@@ -27,11 +27,11 @@ void GeneticSolver::initPopulation(std::vector<Cube> &population) const {
     }
 }
 
-Cube GeneticSolver::solve() {
-    std::vector<Cube> solutions;
+CubeIndividual GeneticSolver::solve() {
+    std::vector<CubeIndividual> solutions;
 
     for (int iteration = 0; iteration < maxResetCount_; ++iteration) {
-        std::vector<Cube> population(populationSize_);
+        std::vector<CubeIndividual> population(populationSize_);
 
         initPopulation(population);
 
@@ -39,9 +39,9 @@ Cube GeneticSolver::solve() {
             if (solutionFound)
                 return source;
 
-            std::sort(population.begin(), population.end(), Cube::FitnessSortGreater());
+            std::sort(population.begin(), population.end(), CubeIndividual::FitnessSortGreater());
 
-            int solutionsCount = (int) (std::find_if(population.begin(), population.end(), Cube::NotSolved()) -
+            int solutionsCount = (int) (std::find_if(population.begin(), population.end(), CubeIndividual::NotSolved()) -
                                         population.begin());
 
             if (loggingMode_ == Verbose) {
@@ -58,7 +58,7 @@ Cube GeneticSolver::solve() {
                 mutate(population[i], population, mt);
 
             if (solutionsCount != 0) {
-                std::sort(population.begin(), population.begin() + solutionsCount, Cube::HistorySortLess());
+                std::sort(population.begin(), population.begin() + solutionsCount, CubeIndividual::HistorySortLess());
 
                 if (optimizationType_ != LengthOptimized)
                     return population.front();
@@ -70,7 +70,7 @@ Cube GeneticSolver::solve() {
         }
     }
 
-    std::sort(solutions.begin(), solutions.end(), Cube::HistorySortLess());
+    std::sort(solutions.begin(), solutions.end(), CubeIndividual::HistorySortLess());
 
     if (solutions.empty())
         return source;
@@ -78,7 +78,7 @@ Cube GeneticSolver::solve() {
         return solutions.front();
 }
 
-void GeneticSolver::SolveAsync(const Cube &cube, Cube &solution, bool &solving, bool &solved) {
+void GeneticSolver::SolveAsync(const CubeIndividual &cube, CubeIndividual &solution, bool &solving, bool &solved) {
     solving = true;
     solved = false;
 
@@ -89,16 +89,16 @@ void GeneticSolver::SolveAsync(const Cube &cube, Cube &solution, bool &solving, 
     });
 }
 
-Cube GeneticSolver::Solve(const Cube &cube) {
+CubeIndividual GeneticSolver::Solve(const CubeIndividual &cube) {
     scrambled = cube;
     source = cube.WithCleanHistory();
 
-    Cube solution;
+    CubeIndividual solution;
 
     if (loggingMode_ == Verbose) {
         solution = solve();
     } else {
-        std::vector<Cube> solutions;
+        std::vector<CubeIndividual> solutions;
         std::mutex mutex;
         std::condition_variable cv;
 
@@ -106,7 +106,7 @@ Cube GeneticSolver::Solve(const Cube &cube) {
 
         for (int _ = 0; _ < threadCount_; ++_)
             threadPool.Enqueue([&]() -> void {
-                Cube result = solve();
+                CubeIndividual result = solve();
 
                 std::unique_lock<std::mutex> lock(mutex);
                 if (!result.History().empty() && !solutionFound) {
@@ -123,7 +123,7 @@ Cube GeneticSolver::Solve(const Cube &cube) {
         std::unique_lock<std::mutex> lock(mutex);
         cv.wait(lock, [&] { return done == threadCount_; });
 
-        std::sort(solutions.begin(), solutions.end(), Cube::HistorySortLess());
+        std::sort(solutions.begin(), solutions.end(), CubeIndividual::HistorySortLess());
         if (solutions.empty())
             solution = source;
         else
@@ -144,12 +144,12 @@ Cube GeneticSolver::Solve(const Cube &cube) {
         if (loggingMode_ != Silent) {
             out_ << "Source fitness was: " << scrambled.Fitness() << '\n';
             out_ << "Source scramble was:\n";
-            for (const Moves &move : scrambled.History())
+            for (const Move &move : scrambled.History())
                 out_ << moveToString(move) << ' ';
             out_ << '\n';
 
             out_ << "Optimized solution requires " << solution.History().size() << " moves:\n";
-            for (const Moves &move : solution.History())
+            for (const Move &move : solution.History())
                 out_ << moveToString(move) << ' ';
             out_ << '\n';
         }
@@ -158,7 +158,7 @@ Cube GeneticSolver::Solve(const Cube &cube) {
     return solution;
 }
 
-void GeneticSolver::mutate(Cube &cube, std::vector<Cube> &population, std::mt19937 &generator) {
+void GeneticSolver::mutate(CubeIndividual &cube, std::vector<CubeIndividual> &population, std::mt19937 &generator) {
     int fitnessIndex = cube.Fitness() / 100;
 
     std::uniform_int_distribution<int> parentPicker(0, (int) eliteSize_ - 1);
@@ -219,18 +219,18 @@ void GeneticSolver::mutate(Cube &cube, std::vector<Cube> &population, std::mt199
     }
 }
 
-void GeneticSolver::logTopPerformers(const unsigned int &generationsCount, const std::vector<Cube> &population) const {
+void GeneticSolver::logTopPerformers(const unsigned int &generationsCount, const std::vector<CubeIndividual> &population) const {
     out_ << "Generation №" << generationsCount << '\n'
          << "Top " << eliteSize_ << " performers:\n";
     printCubes(eliteSize_, population);
 }
 
-void GeneticSolver::logSolutions(const unsigned int &solutionsCount, const std::vector<Cube> &population) const {
+void GeneticSolver::logSolutions(const unsigned int &solutionsCount, const std::vector<CubeIndividual> &population) const {
     out_ << "Found " << solutionsCount << " solutions:\n";
     printCubes(solutionsCount, population);
 }
 
-void GeneticSolver::logProgressMultiThread(const Cube &top, unsigned int generationNumber) {
+void GeneticSolver::logProgressMultiThread(const CubeIndividual &top, unsigned int generationNumber) {
     if (solutionFound)
         return;
 
@@ -241,7 +241,7 @@ void GeneticSolver::logProgressMultiThread(const Cube &top, unsigned int generat
          << top.History().size() << " moves\n";
 }
 
-void GeneticSolver::printCubes(unsigned int upTo, const std::vector<Cube> &population) const {
+void GeneticSolver::printCubes(unsigned int upTo, const std::vector<CubeIndividual> &population) const {
     for (unsigned int i = 0; i < upTo; ++i) {
         if (population[i].Fitness() != 0) {
             out_ << "Fitness: " << population[i].Fitness() << "\nSequence (" << population[i].History().size() << "): ";
@@ -250,15 +250,15 @@ void GeneticSolver::printCubes(unsigned int upTo, const std::vector<Cube> &popul
     }
 }
 
-struct GeneticSolver::SolutionCycle {
-    std::vector<Moves> sequence;
-    std::vector<Moves> adjustment;
+struct SolutionCycle {
+    std::vector<Move> sequence;
+    std::vector<Move> adjustment;
 
     std::pair<int, int> coordinates = {-1, -1};
 
     SolutionCycle() = default;
 
-    SolutionCycle(std::vector<Moves> sequence_, std::vector<Moves> adjustment_,
+    SolutionCycle(std::vector<Move> sequence_, std::vector<Move> adjustment_,
                   std::pair<unsigned int, unsigned int> coordinates_)
             : sequence(std::move(sequence_)), adjustment(std::move(adjustment_)),
               coordinates(std::move(coordinates_)) {};
@@ -275,55 +275,57 @@ struct GeneticSolver::SolutionCycle {
     }
 };
 
-Cube GeneticSolver::optimize(const Cube &solution) {
-    Cube phaseOneCube(solution);
+CubeIndividual GeneticSolver::optimize(const CubeIndividual &solution) {
+    CubeIndividual phaseOneCube(solution);
 
     for (int i = 0; i < phaseOneCube.History().size() - 1; ++i) {
-        Moves current = phaseOneCube.History()[i], next = phaseOneCube.History()[i + 1];
+        Move current = phaseOneCube.History()[i], next = phaseOneCube.History()[i + 1];
 
-        if (current % 10 == next % 10) {
-            if (current / 10 == 0 && next / 10 == 1 ||
-                current / 10 == 1 && next / 10 == 0 ||
-                current / 10 == 2 && next / 10 == 2) {
+        if (current.face == next.face) {
+            if (current.direction == Move::Clockwise && next.direction == Move::CounterClockwise ||
+                current.direction == Move::CounterClockwise && next.direction == Move::Clockwise ||
+                current.direction == Move::HalfTurn && next.direction == Move::HalfTurn) {
                 phaseOneCube.EraseMoveAt(i);
                 phaseOneCube.EraseMoveAt(i);
-            } else if (current == next && current / 10 != 2) {
+            } else if (current == next && current.direction != Move::HalfTurn) {
                 phaseOneCube.EraseMoveAt(i);
                 phaseOneCube.EraseMoveAt(i);
-                phaseOneCube.InsertMoveAt(i, Moves(20 + current % 10));
-            } else if (current / 10 == 0 && next / 10 == 2 ||
-                       current / 10 == 2 && next / 10 == 0) {
+                phaseOneCube.InsertMoveAt(i, {Move::HalfTurn, current.face});
+            } else if (current.direction == Move::Clockwise && next.direction == Move::HalfTurn ||
+                       current.direction == Move::HalfTurn && next.direction == Move::Clockwise) {
                 phaseOneCube.EraseMoveAt(i);
                 phaseOneCube.EraseMoveAt(i);
-                phaseOneCube.InsertMoveAt(i, Moves(10 + current % 10));
-            } else if (current / 10 == 1 && next / 10 == 2 ||
-                       current / 10 == 2 && next / 10 == 1) {
+                phaseOneCube.InsertMoveAt(i, {Move::CounterClockwise, current.face});
+            } else if (current.direction == Move::CounterClockwise && next.direction == Move::HalfTurn ||
+                       current.direction == Move::HalfTurn && next.direction == Move::CounterClockwise) {
                 phaseOneCube.EraseMoveAt(i);
                 phaseOneCube.EraseMoveAt(i);
-                phaseOneCube.InsertMoveAt(i, Moves(current % 10));
+                phaseOneCube.InsertMoveAt(i, {Move::Clockwise, current.face});
             }
         }
     }
 
     if (loggingMode_ != Silent)
-        out_ << "After removing mutually compensating moves found solution requires " << phaseOneCube.History().size() << " moves\n";
+        out_ << "After removing mutually compensating moves found solution requires " << phaseOneCube.History().size()
+             << " moves\n";
 
     if (optimizationType_ == SpeedOptimized)
         return phaseOneCube;
 
-    Cube phaseTwoCube(phaseOneCube);
-    Cube state(source);
+    CubeIndividual phaseTwoCube(phaseOneCube);
+    CubeIndividual state(source);
     std::vector<SolutionCycle> cycles;
     std::mutex mutex;
     std::condition_variable cv;
     unsigned int done = 0;
 
-    for (int moveLeadToStateIndex = -1; moveLeadToStateIndex < (int) phaseTwoCube.History().size() - 1; ++moveLeadToStateIndex) {
+    for (int moveLeadToStateIndex = -1;
+         moveLeadToStateIndex < (int) phaseTwoCube.History().size() - 1; ++moveLeadToStateIndex) {
         if (moveLeadToStateIndex != -1)
             state.PerformMove(phaseTwoCube.History()[moveLeadToStateIndex]);
 
         threadPool.Enqueue([&, moveLeadToStateIndex, state]() -> void {
-            Cube modifiedState(state.WithCleanHistory());
+            CubeIndividual modifiedState(state.WithCleanHistory());
             SolutionCycle cycle;
 
             for (int j = moveLeadToStateIndex + 1; j < phaseTwoCube.History().size(); ++j) {
@@ -336,8 +338,8 @@ Cube GeneticSolver::optimize(const Cube &solution) {
                     continue;
                 }
 
-                for (std::vector<Moves> const &axisRotation : fullRotations) {
-                    Cube rotatedState(state);
+                for (std::vector<Move> const &axisRotation : fullRotations) {
+                    CubeIndividual rotatedState(state);
                     rotatedState.PerformMoves(axisRotation);
                     if (modifiedState == rotatedState) {
                         cycle.sequence = modifiedState.History();
@@ -348,8 +350,8 @@ Cube GeneticSolver::optimize(const Cube &solution) {
                     }
                 }
 
-                for (std::vector<Moves> const &orientation : orientations) {
-                    Cube rotatedState(state);
+                for (std::vector<Move> const &orientation : orientations) {
+                    CubeIndividual rotatedState(state);
                     rotatedState.PerformMoves(orientation);
                     if (modifiedState == rotatedState) {
                         cycle.sequence = modifiedState.History();
@@ -405,7 +407,8 @@ Cube GeneticSolver::optimize(const Cube &solution) {
 
     if (loggingMode_ == Verbose) {
         for (auto &cycle : cycles) {
-            out_ << cycle.coordinates.first << ' ' << cycle.coordinates.second << "\n\t" << movesToString(cycle.sequence)
+            out_ << cycle.coordinates.first << ' ' << cycle.coordinates.second << "\n\t"
+                 << movesToString(cycle.sequence)
                  << "\n\t" << movesToString(cycle.adjustment) << '\n';
         }
     }
@@ -414,7 +417,7 @@ Cube GeneticSolver::optimize(const Cube &solution) {
     for (const SolutionCycle &cycle : cycles) {
         for (unsigned int _ = cycle.coordinates.first; _ <= cycle.coordinates.second; ++_)
             phaseTwoCube.EraseMoveAt(cycle.coordinates.first - offset);
-        for (const Moves &move : cycle.adjustment)
+        for (const Move &move : cycle.adjustment)
             phaseTwoCube.InsertMoveAt(cycle.coordinates.first - offset, move);
 
         offset += cycle.eliminating();
@@ -424,7 +427,8 @@ Cube GeneticSolver::optimize(const Cube &solution) {
         out_ << "WARNING!!! OPTIMIZED SOLUTION APPEARS TO BE WRONG!!! (Less optimized correct solution was provided)\n";
         out_ << "Removed cycles:\n";
         for (const SolutionCycle &cycle : cycles) {
-            out_ << cycle.coordinates.first << ' ' << cycle.coordinates.second << "\n\t" << movesToString(cycle.sequence)
+            out_ << cycle.coordinates.first << ' ' << cycle.coordinates.second << "\n\t"
+                 << movesToString(cycle.sequence)
                  << "\n\t" << movesToString(cycle.adjustment) << '\n';
         }
 

@@ -336,7 +336,7 @@ void RubikApplication::HandleUpdate(Urho3D::StringHash eventType, Urho3D::Varian
 }
 
 void RubikApplication::HandleRandomize(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
-    Logic::Cube c(Logic::Cube::RandomScramble {});
+    Logic::CubeIndividual c(true);
     animator_->AddMoves(c.History());
 }
 
@@ -395,7 +395,7 @@ void RubikApplication::HandleFileDrop(Urho3D::StringHash eventType, Urho3D::Vari
 }
 
 void RubikApplication::HandleClear(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
-    animator_->SetUnwrap(Logic::Cube {});
+    animator_->SetUnwrap(Logic::CubeIndividual {});
 }
 
 void RubikApplication::HandleSave(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData) {
@@ -415,7 +415,7 @@ void RubikApplication::HandleLoad(Urho3D::StringHash eventType, Urho3D::VariantM
     }
 
     try {
-        animator_->SetUnwrap(Logic::Cube {stream.str()});
+        animator_->SetUnwrap(Logic::CubeIndividual {stream.str().c_str()});
     } catch (std::invalid_argument &exception) {
         auto *messageBox = new Urho3D::MessageBox(context_, exception.what(), "Failed to import cube");
         auto *window = messageBox->GetWindow();

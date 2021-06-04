@@ -12,41 +12,82 @@
 
 //@no-format
 namespace Logic {
-    enum Moves {
-        Up      = 0,  UpRev     = 10, UpHalf      = 20,
-        Front   = 1,  FrontRev  = 11, FrontHalf   = 21,
-        Down    = 2,  DownRev   = 12, DownHalf    = 22,
-        Back    = 3,  BackRev   = 13, BackHalf    = 23,
-        Left    = 4,  LeftRev   = 14, LeftHalf    = 24,
-        Right   = 5,  RightRev  = 15, RightHalf   = 25,
-        Middle  = 6,  MiddleRev = 16, MiddleHalf  = 26,
-        Edge    = 7,  EdgeRev   = 17, EdgeHalf    = 27,
-        Side    = 8,  SideRev   = 18, SideHalf    = 28,
+    struct Move {
+        enum Direction {
+            Clockwise, CounterClockwise, HalfTurn
+        };
+        enum Face {
+            Up    , Front, Down ,
+            Back  , Left , Right,
+            Middle, Edge , Side ,
+        };
 
-        U       = 0,  UR        = 10, U2          = 20,
-        F       = 1,  FR        = 11, F2          = 21,
-        D       = 2,  DR        = 12, D2          = 22,
-        B       = 3,  BR        = 13, B2          = 23,
-        L       = 4,  LR        = 14, L2          = 24,
-        R       = 5,  RR        = 15, R2          = 25,
-        M       = 6,  MR        = 16, M2          = 26,
-        E       = 7,  ER        = 17, E2          = 27,
-        S       = 8,  SR        = 18, S2          = 28,
+        Direction direction;
+        Face face;
+
+        constexpr Move(Direction d = Clockwise, Face f = Up) : direction(d), face(f) {};
+
+        bool operator==(const Move &rhs) const {
+            return direction == rhs.direction && face == rhs.face;
+        }
+
+        bool operator!=(const Move &rhs) const {
+            return direction != rhs.direction || face != rhs.face;
+        }
+    };
+
+
+    namespace Moves {
+        static constexpr Move U {static_cast<Move::Direction>(0), static_cast<Move::Face>(0)};
+        static constexpr Move UR{static_cast<Move::Direction>(1), static_cast<Move::Face>(0)};
+        static constexpr Move U2{static_cast<Move::Direction>(2), static_cast<Move::Face>(0)};
+
+        static constexpr Move F {static_cast<Move::Direction>(0), static_cast<Move::Face>(1)};
+        static constexpr Move FR{static_cast<Move::Direction>(1), static_cast<Move::Face>(1)};
+        static constexpr Move F2{static_cast<Move::Direction>(2), static_cast<Move::Face>(1)};
+
+        static constexpr Move D {static_cast<Move::Direction>(0), static_cast<Move::Face>(2)};
+        static constexpr Move DR{static_cast<Move::Direction>(1), static_cast<Move::Face>(2)};
+        static constexpr Move D2{static_cast<Move::Direction>(2), static_cast<Move::Face>(2)};
+
+        static constexpr Move B {static_cast<Move::Direction>(0), static_cast<Move::Face>(3)};
+        static constexpr Move BR{static_cast<Move::Direction>(1), static_cast<Move::Face>(3)};
+        static constexpr Move B2{static_cast<Move::Direction>(2), static_cast<Move::Face>(3)};
+
+        static constexpr Move L {static_cast<Move::Direction>(0), static_cast<Move::Face>(4)};
+        static constexpr Move LR{static_cast<Move::Direction>(1), static_cast<Move::Face>(4)};
+        static constexpr Move L2{static_cast<Move::Direction>(2), static_cast<Move::Face>(4)};
+
+        static constexpr Move R {static_cast<Move::Direction>(0), static_cast<Move::Face>(5)};
+        static constexpr Move RR{static_cast<Move::Direction>(1), static_cast<Move::Face>(5)};
+        static constexpr Move R2{static_cast<Move::Direction>(2), static_cast<Move::Face>(5)};
+
+        static constexpr Move M {static_cast<Move::Direction>(0), static_cast<Move::Face>(6)};
+        static constexpr Move MR{static_cast<Move::Direction>(1), static_cast<Move::Face>(6)};
+        static constexpr Move M2{static_cast<Move::Direction>(2), static_cast<Move::Face>(6)};
+
+        static constexpr Move E {static_cast<Move::Direction>(0), static_cast<Move::Face>(7)};
+        static constexpr Move ER{static_cast<Move::Direction>(1), static_cast<Move::Face>(7)};
+        static constexpr Move E2{static_cast<Move::Direction>(2), static_cast<Move::Face>(7)};
+
+        static constexpr Move S {static_cast<Move::Direction>(0), static_cast<Move::Face>(8)};
+        static constexpr Move SR{static_cast<Move::Direction>(1), static_cast<Move::Face>(8)};
+        static constexpr Move S2{static_cast<Move::Direction>(2), static_cast<Move::Face>(8)};
     };
 }
 //@format
 
-Logic::Moves randomMove();
+Logic::Move randomMove();
 
-std::string moveToString(const Logic::Moves &move);
+std::string moveToString(const Logic::Move &move);
 
-std::string movesToString(const std::vector<Logic::Moves> &moves);
+std::string movesToString(const std::vector<Logic::Move> &moves);
 
-std::vector<Logic::Moves> movesFromString(const std::string &string);
+std::vector<Logic::Move> movesFromString(const std::string &string);
 
-std::vector<Logic::Moves> reverseMoves(const std::vector<Logic::Moves> &);
+std::istream &operator>>(std::istream &, Logic::Move &);
 
-std::istream &operator>>(std::istream &, Logic::Moves &);
+std::ostream &operator<<(std::ostream &, const Logic::Move &);
 
 #endif //GENETICCUBE_MOVES_HPP
 

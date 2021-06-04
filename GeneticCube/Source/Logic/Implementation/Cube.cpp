@@ -108,10 +108,10 @@ Cube::Cube(const std::string &string) {
 }
 
 Cube::Cube(const Cube &origin)
-        : history(origin.history), unwrap(origin.unwrap), fitness_(origin.fitness_) {};
+        : unwrap(origin.unwrap) {};
 
 Cube::Cube(Cube &&origin) noexcept
-        : history(std::move(origin.history)), unwrap(std::move(origin.unwrap)), fitness_(origin.fitness_) {};
+        : unwrap(std::move(origin.unwrap)) {};
 
 std::string Cube::ToUnwrapString() const {
     static const char spacer[] = "       ";
@@ -173,51 +173,43 @@ std::ostream &operator<<(std::ostream &out, const Cube &cube) {
     return out << cube.ToUnwrapString();
 }
 
-Cube &Cube::operator=(const Cube rhs) {
+Cube &Cube::operator=(const Cube &rhs) {
     if (&rhs != this) {
         unwrap = rhs.unwrap;
-        history = rhs.history;
-        fitness_ = rhs.fitness_;
     }
 
     return *this;
 }
 
-Cube &Cube::PerformMove(Moves move) {
+Cube &Cube::PerformMove(Move move) {
     using namespace CubeIndicesData::Rotation;
 
-    history.push_back(move);
-    secondaryHistory.push_back(move);
-
-    if (move % 10 < 6) {
-        std::vector<Color> buffer(unwrap[move % 10]);
+    if (move.face < Move::Middle) {
+        std::vector<Color> buffer(unwrap[move.face]);
         //Вращение соответствующей стороны
         int counter = 0;
-        for (const int &i : faceletRotation[move / 10])
-            unwrap[move % 10][counter++] = buffer[i];
+        for (const int &i : faceletRotation[move.direction])
+            unwrap[move.face][counter++] = buffer[i];
     }
 
-    if (move / 10 == 2) {
-        move = Moves(move % 10);
+    if (move.direction == Move::HalfTurn) {
+        move = Move(Move::Clockwise, move.face);
 
         rotateAdj(
-                std::vector<int>(
-                        subFaces[move % 10][move / 10].begin(), subFaces[move % 10][move / 10].end()),
-                subFaceletsRotation[move % 10],
-                begins[move % 10]);
+                subFaces[move.face][move.direction],
+                subFaceletsRotation[move.face],
+                begins[move.face]);
     }
 
     rotateAdj(
-            std::vector<int>(
-                    subFaces[move % 10][move / 10].begin(), subFaces[move % 10][move / 10].end()),
-            subFaceletsRotation[move % 10],
-            begins[move % 10]);
+            subFaces[move.face][move.direction],
+            subFaceletsRotation[move.face],
+            begins[move.face]);
 
-    fitness_ = countFitness();
     return *this;
 }
 
-void Cube::rotateAdj(const std::vector<int> &subFaces, const std::vector<std::vector<int>> &facelets, int begin) {
+void Cube::rotateAdj(const std::array<int, 4> &subFaces, const std::array<std::array<int, 3>, 6> &facelets, int begin) {
     //Вращение смежных сторон
     std::queue<Color> queue;
     for (const int &facelet : facelets[begin])
@@ -232,240 +224,6 @@ void Cube::rotateAdj(const std::vector<int> &subFaces, const std::vector<std::ve
             queue.pop();
         }
     }
-}
-
-int Cube::NaiveFitness() const {
-    int fitness = 0;
-
-    for (const auto &i : unwrap)
-        for (const auto &j : i)
-            if (j == i[4])
-                ++fitness;
-
-    return fitness;
-}
-
-int Cube::countFitness() const {
-    std::vector<int> fitness;
-    std::vector<int> sides;
-
-    fitness = fitnessBottomCross();
-    if (fitness.empty())
-        return NaiveFitness();
-
-
-    sides = fitnessBars(fitness);
-    if (sides.empty())
-        return FitnessStates::BottomCross + NaiveFitness();
-
-    fitness = sides;
-    sides = fitnessFullSide(fitness);
-    if (sides.empty())
-        return FitnessStates::Bars + NaiveFitness();
-
-    fitness = sides;
-    sides = fitnessPyramid(fitness);
-    if (sides.empty())
-        return FitnessStates::FullSide + NaiveFitness();
-
-    fitness = sides;
-    sides = fitnessBag(fitness);
-    if (sides.empty())
-        return FitnessStates::Pyramid + NaiveFitness();
-
-    fitness = sides;
-    sides = fitnessTopCross(fitness);
-    if (sides.empty())
-        return FitnessStates::Bag + NaiveFitness();
-
-    fitness = sides;
-    sides = fitnessNoTopCorners(fitness);
-    if (sides.empty())
-        return FitnessStates::TopCross + NaiveFitness();
-
-    fitness = sides;
-    sides = fitnessSolved(fitness);
-    if (sides.empty())
-        return FitnessStates::NoTopCorners + NaiveFitness();
-
-    return FitnessStates::Solved;
-}
-
-std::vector<int> Cube::fitnessBottomCross() const {
-    std::vector<int> satisfyingSides;
-
-    for (int side = 0; side < 6; ++side)
-        if (unwrap[side][4] == unwrap[side][1] &&
-            unwrap[side][4] == unwrap[side][3] &&
-            unwrap[side][4] == unwrap[side][5] &&
-            unwrap[side][4] == unwrap[side][7])
-            satisfyingSides.push_back(side);
-
-    return satisfyingSides;
-}
-
-std::vector<int> Cube::fitnessBars(const std::vector<int> &sides) const {
-    using namespace CubeIndicesData::Fitness;
-
-    std::vector<int> satisfyingSides;
-
-    for (const int &side : sides) {
-        bool satisfying = true;
-
-        for (int i = 0; i < 6; ++i) {
-            if (i == side || i == opposites[side])
-                continue;
-
-            if (unwrap[i][4] != unwrap[i][barsBases[side][i]]) {
-                satisfying = false;
-                break;
-            }
-        }
-
-        if (satisfying)
-            satisfyingSides.push_back(side);
-    }
-
-    return satisfyingSides;
-}
-
-std::vector<int> Cube::fitnessFullSide(const std::vector<int> &sides) const {
-    std::vector<int> satisfyingSides;
-
-    for (const int &side : sides) {
-        bool satisfying = true;
-
-        for (int i = 0; i < 9; ++i)
-            if (unwrap[side][4] != unwrap[side][i]) {
-                satisfying = false;
-                break;
-            }
-
-        if (satisfying)
-            satisfyingSides.push_back(side);
-    }
-
-    return satisfyingSides;
-}
-
-std::vector<int> Cube::fitnessPyramid(const std::vector<int> &sides) const {
-    using namespace CubeIndicesData::Fitness;
-
-    std::vector<int> satisfyingSides;
-
-    for (const int &side : sides) {
-        bool satisfying = true;
-
-        for (int i = 0; i < 6; ++i) {
-            if (i == opposites[side] || i == side)
-                continue;
-
-            if (unwrap[i][4] != unwrap[i][pyramidBases[side][i][0]] ||
-                unwrap[i][4] != unwrap[i][pyramidBases[side][i][1]]) {
-                satisfying = false;
-                break;
-            }
-        }
-
-        if (satisfying)
-            satisfyingSides.push_back(side);
-    }
-
-    return satisfyingSides;
-}
-
-std::vector<int> Cube::fitnessBag(const std::vector<int> &sides) const {
-    using namespace CubeIndicesData::Fitness;
-
-    std::vector<int> satisfyingSides;
-
-    for (const int &side : sides) {
-        bool satisfying = true;
-
-        for (int i = 0; i < 6; ++i) {
-            if (i == side || i == opposites[side])
-                continue;
-
-            if (unwrap[i][4] != unwrap[i][bagEars[side][i][0]] ||
-                unwrap[i][4] != unwrap[i][bagEars[side][i][1]]) {
-                satisfying = false;
-                break;
-            }
-        }
-
-        if (satisfying)
-            satisfyingSides.push_back(side);
-    }
-
-    return satisfyingSides;
-}
-
-std::vector<int> Cube::fitnessTopCross(const std::vector<int> &sides) const {
-    std::vector<int> satisfyingSides;
-
-    for (const int &side : sides) {
-        if (unwrap[opposites[side]][4] == unwrap[opposites[side]][1] &&
-            unwrap[opposites[side]][4] == unwrap[opposites[side]][3] &&
-            unwrap[opposites[side]][4] == unwrap[opposites[side]][5] &&
-            unwrap[opposites[side]][4] == unwrap[opposites[side]][7])
-            satisfyingSides.push_back(side);
-    }
-
-    return satisfyingSides;
-}
-
-std::vector<int> Cube::fitnessNoTopCorners(const std::vector<int> &sides) const {
-    using namespace CubeIndicesData::Fitness;
-
-    std::vector<int> satisfyingSides;
-
-    for (const int &side :sides) {
-        bool satisfying = true;
-
-        for (int i = 0; i < 6; ++i) {
-            if (i == side || i == opposites[side])
-                continue;
-
-            if (unwrap[i][4] != unwrap[i][sidesTops[side][i]]) {
-                satisfying = false;
-                break;
-            }
-        }
-
-        if (satisfying)
-            satisfyingSides.push_back(side);
-    }
-
-    return satisfyingSides;
-}
-
-std::vector<int> Cube::fitnessSolved(const std::vector<int> &sides) const {
-    using namespace CubeIndicesData::Fitness;
-
-    std::vector<int> satisfyingSides;
-
-    for (const int &side : sides) {
-        bool satisfying = true;
-
-        for (int i = 0; i < 6; ++i) {
-            if (i == side)
-                continue;
-
-            for (const int &facelet : topCrossEars[side][i])
-                if (unwrap[i][4] != unwrap[i][facelet]) {
-                    satisfying = false;
-                    break;
-                }
-
-            if (!satisfying)
-                break;
-        }
-
-        if (satisfying)
-            satisfyingSides.push_back(side);
-    }
-
-    return satisfyingSides;
 }
 
 Cube &Cube::Randomize() {

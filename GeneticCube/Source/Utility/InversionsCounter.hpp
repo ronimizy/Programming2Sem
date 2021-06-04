@@ -11,7 +11,8 @@ template<typename T>
 class InversionsCounter {
     using result_type = size_t;
 
-    static void compare(std::vector<T> &leftArray, std::vector<T> &rightArray, std::vector<T> &result, result_type &count) {
+    static void
+    compare(std::vector<T> &leftArray, std::vector<T> &rightArray, std::vector<T> &result, result_type &count) {
         result_type left = 0, right = 0;
         for (long int i = 0; i < leftArray.size() + rightArray.size(); i++) {
             if (left < leftArray.size() && right < rightArray.size()) {

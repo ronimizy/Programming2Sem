@@ -30,6 +30,10 @@ namespace Visualization {
         RubikApplication(Urho3D::Context *context)
                 : Urho3D::Application(context) {};
 
+        ~RubikApplication() {
+            delete animator_;
+        }
+
         void Setup() override;
 
         void Start() override;
@@ -56,10 +60,6 @@ namespace Visualization {
         void HandleClearFilePath(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
 
         void HandleClear(Urho3D::StringHash eventType, Urho3D::VariantMap &eventData);
-
-        ~RubikApplication() {
-            delete animator_;
-        }
     };
 }
 

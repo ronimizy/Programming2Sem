@@ -97,17 +97,17 @@ bool CubeAnimator::TryFlipDimension() {
     return true;
 }
 
-void CubeAnimator::AddMove(Logic::Moves move) {
+void CubeAnimator::AddMove(Logic::Move move) {
     if (solving_)
         return;
 
     addConfiguration(move);
 }
 
-void CubeAnimator::AddMoves(const std::vector<Logic::Moves> &moves) {
+void CubeAnimator::AddMoves(const std::vector<Logic::Move> &moves) {
     if (solving_)
         return;
 
-    for (const Logic::Moves &move : moves)
+    for (const Logic::Move &move : moves)
         addConfiguration(move);
 }

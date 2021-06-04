@@ -38,6 +38,15 @@ namespace Visualization {
     public:
         Cube(Urho3D::SharedPtr<Urho3D::Scene> &scene, Urho3D::ResourceCache *cache);
 
+        ~Cube() {
+            for (auto &slice : cubes) {
+                for (auto &row : slice) {
+                    for (Box *box : row)
+                        delete box;
+                }
+            }
+        }
+
         void Rotate(float degree, bool sync);
 
         void MovePosition(long at);

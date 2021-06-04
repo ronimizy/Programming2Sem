@@ -8,6 +8,27 @@
 URHO3D_DEFINE_APPLICATION_MAIN(Visualization::RubikApplication)
 
 //int main() {
+//    Logic::Cube cube;
+//    std::cout << cube;
+//    using namespace Logic::Moves;
+//    cube.PerformMove(L);
+//    std::cout << cube;
+//
+//    for (auto move : {U, UR, U2, U2,
+//                      F, FR, F2, F2,
+//                      D, DR, D2, D2,
+//                      B, BR, B2, B2,
+//                      L, LR, L2, L2,
+//                      R, RR, R2, R2}) {
+//        std::cout << move << '\n';
+//        cube.PerformMove(move);
+//        std::cout << cube;
+//    }
+//
+//    return 0;
+//}
+
+//int main() {
 //    Logic::GeneticSolver solver(1000, 20, 200, 10,
 //                                std::thread::hardware_concurrency() - 1, Logic::SpeedOptimized, Logic::Silent);
 //    size_t average = 0;

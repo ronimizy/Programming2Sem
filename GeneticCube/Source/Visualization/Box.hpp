@@ -15,8 +15,8 @@ namespace Visualization {
     class Box {
         static const int faceCount = 6;
 
-        Urho3D::Node *root;
-        std::vector<Urho3D::Node *> faces;
+        Urho3D::SharedPtr<Urho3D::Node> root;
+        std::vector<Urho3D::SharedPtr<Urho3D::Node >> faces;
 
         float scale_ = 5.0f;
 
